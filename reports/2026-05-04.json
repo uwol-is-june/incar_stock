@@ -1,0 +1,59 @@
+{
+  "date": "2026-05-04",
+  "generated_at": "2026-05-11T16:57:24",
+  "market_summary": "",
+  "stocks": {
+    "211050": {
+      "close": 10450,
+      "prev_close": 10820,
+      "change": -370,
+      "change_pct": -3.42,
+      "is_fallback": false,
+      "data_date": "2026-05-04",
+      "open": 10750,
+      "high": 10810,
+      "low": 10450,
+      "volume": 150368,
+      "week52_high": 11450,
+      "week52_low": 10450,
+      "market_cap": null,
+      "listed_shares": null,
+      "per": null,
+      "pbr": null,
+      "eps": null,
+      "div": null,
+      "dps": null,
+      "foreign_pct": null,
+      "exhaustion_rate": null,
+      "cap_rank": null,
+      "kospi": {
+        "close": 6936.99,
+        "prev_close": 6598.87,
+        "change": 338.12,
+        "change_pct": 5.12
+      },
+      "kosdaq": {
+        "close": 1213.74,
+        "prev_close": 1192.35,
+        "change": 21.39,
+        "change_pct": 1.79
+      },
+      "inst_buy": 46368,
+      "inst_sell": 42098,
+      "inst_net": 4270,
+      "indiv_buy": 53056,
+      "indiv_sell": 60897,
+      "indiv_net": -7841,
+      "foreign_buy": 45630,
+      "foreign_sell": 47010,
+      "foreign_net": -1380,
+      "finv_net": -14660,
+      "ins_net": 0,
+      "trust_net": -20000,
+      "private_net": 38930,
+      "bank_net": 0,
+      "etc_fin_net": 0,
+      "pension_net": 0
+    }
+  }
+}

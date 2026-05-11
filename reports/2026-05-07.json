@@ -1,0 +1,62 @@
+{
+  "date": "2026-05-07",
+  "generated_at": "2026-05-11T16:57:23",
+  "market_summary": "",
+  "stocks": {
+    "211050": {
+      "name": "인카금융서비스",
+      "close": 10070,
+      "prev_close": 10100,
+      "change": -30,
+      "change_pct": -0.3,
+      "is_fallback": true,
+      "data_date": "2026-05-07",
+      "open": 10180,
+      "high": 10700,
+      "low": 10010,
+      "volume": 235129,
+      "trading_value": 1284118250,
+      "week52_high": 17330,
+      "week52_low": 8200,
+      "market_cap": 520224217920,
+      "listed_shares": 49263657,
+      "per": 7.05,
+      "pbr": 2.38,
+      "eps": 1480,
+      "div": 3.54,
+      "dps": 370,
+      "foreign_pct": null,
+      "exhaustion_rate": null,
+      "cap_rank": null,
+      "kospi": {
+        "close": 7490.05,
+        "prev_close": 7384.56,
+        "change": 105.49,
+        "change_pct": 1.43
+      },
+      "kosdaq": {
+        "close": 1199.18,
+        "prev_close": 1210.17,
+        "change": -10.99,
+        "change_pct": -0.91
+      },
+      "inst_buy": 60550,
+      "inst_sell": 110624,
+      "inst_net": -50074,
+      "indiv_buy": 37229,
+      "indiv_sell": 69868,
+      "indiv_net": -32639,
+      "foreign_buy": 127993,
+      "foreign_sell": 43200,
+      "foreign_net": 84793,
+      "finv_net": -11176,
+      "ins_net": -32,
+      "trust_net": -33336,
+      "private_net": 22012,
+      "comment": "",
+      "bank_net": 0,
+      "etc_fin_net": -27542,
+      "pension_net": 0
+    }
+  }
+}

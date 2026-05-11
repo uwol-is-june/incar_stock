@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InCar Stock Monitor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scrollbar-gutter: stable; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+      scrollbar-gutter: stable;
+    }
+
+    /* ─── 헤더 ─── */
+    header {
+      background: #0d1b2a;
+      color: #fff;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .header-left h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .header-ticker {
+      font-size: 0.78rem;
+      color: #8899aa;
+      margin-top: 3px;
+    }
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    #btn-update {
+      padding: 6px 16px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+      white-space: nowrap;
+    }
+    #btn-update:hover { background: #1d4ed8; }
+    #btn-update:disabled { opacity: .5; cursor: not-allowed; }
+    .header-meta {
+      font-size: 0.7rem;
+      color: #6b7280;
+      text-align: right;
+    }
+
+    /* ─── 본문 ─── */
+    main { max-width: 1080px; margin: 24px auto; padding: 0 16px 32px; }
+
+    /* ─── KPI 카드 그리드 ─── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 0;
+    }
+    @media (max-width: 700px) {
+      .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .metrics-section { margin-bottom: 14px; }
+    .metrics-section-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+
+    .metric-card {
+      background: #fff;
+      border: 1px solid #e4e7ec;
+      border-radius: 10px;
+      padding: 13px 16px 12px;
+    }
+    .metric-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: #9ca3af;
+      margin-bottom: 5px;
+    }
+    .metric-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.3px;
+    }
+    .metric-value.na { color: #d1d5db; font-size: 0.95rem; }
+    .metric-sub {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+    .metric-note {
+      font-size: 0.65rem;
+      color: #6b7280;
+      margin-top: 3px;
+      font-style: italic;
+    }
+
+    /* ─── 테이블 카드 ─── */
+    .card {
+      background: #fff;
+      border: 1px solid #e4e7ec;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .card-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: #6b7280;
+      padding: 13px 20px 11px;
+      border-bottom: 1px solid #f1f3f6;
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      white-space: nowrap;
+    }
+    th {
+      text-align: right;
+      padding: 9px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e4e7ec;
+      font-weight: 600;
+      color: #374151;
+    }
+    th:first-child { text-align: left; }
+    td {
+      text-align: right;
+      padding: 11px 16px;
+      border-bottom: 1px solid #f5f6f8;
+      vertical-align: middle;
+    }
+    td:first-child { text-align: left; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbfc; }
+
+    /* 한국 증시 색상 관례: 상승=빨강, 하락=파랑 */
+    .up   { color: #dc2626; font-weight: 600; }
+    .down { color: #2563eb; font-weight: 600; }
+    .flat { color: #6b7280; }
+
+    .badge-fallback {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 99px;
+      font-size: 0.67rem;
+      font-weight: 600;
+      background: #fef3c7;
+      color: #92400e;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: #9ca3af;
+      font-size: 0.88rem;
+    }
+
+    /* ─── 투자자 동향 그리드 ─── */
+    .investor-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 640px) {
+      .investor-grid { grid-template-columns: 1fr; }
+    }
+    .investor-na {
+      text-align: center;
+      padding: 32px 20px;
+      color: #9ca3af;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    /* ─── KOSPI/KOSDAQ 지수 스트립 ─── */
+    .index-strip {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .index-card {
+      flex: 1;
+      background: #0d1b2a;
+      color: #fff;
+      border-radius: 10px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .index-name {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #8899aa;
+      margin-bottom: 3px;
+    }
+    .index-value { font-size: 1.2rem; font-weight: 700; }
+    .index-delta { font-size: 0.82rem; font-weight: 600; text-align: right; }
+    .index-delta .index-pct { font-size: 0.72rem; color: #a0aec0; display: block; margin-top: 1px; }
+
+    /* ─── 종가 배너 ─── */
+    .price-banner {
+      background: #fff;
+      border: 1px solid #e4e7ec;
+      border-radius: 10px;
+      padding: 14px 20px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .price-banner-label  { font-size: 0.7rem; font-weight: 700; color: #9ca3af; }
+    .price-banner-date   { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+    .price-banner-close  { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
+    .price-banner-change { font-size: 0.88rem; font-weight: 600; margin-top: 4px; }
+    .price-banner-right  { text-align: right; }
+    .price-banner-pending { font-size: 0.82rem; color: #9ca3af; font-style: italic; }
+
+    /* ─── 소진율 progress bar ─── */
+    .progress-wrap {
+      background: #f1f3f6;
+      border-radius: 99px;
+      height: 7px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+    .progress-bar {
+      height: 100%;
+      border-radius: 99px;
+      background: #f59e0b;
+    }
+
+    /* ─── 시총 순위 뱃지 ─── */
+    .rank-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: #eff6ff;
+      color: #1d4ed8;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    /* ─── 탭 네비게이션 ─── */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 14px;
+      border-bottom: 2px solid #e4e7ec;
+    }
+    .tab-btn {
+      padding: 9px 18px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #6b7280;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+    .tab-btn:hover:not(.active) { color: #374151; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>InCar Stock Monitor</h1>
+    <div class="header-ticker">인카금융서비스 · 211050</div>
+  </div>
+  <div class="header-right">
+    <button id="btn-update">업데이트</button>
+    <div class="header-meta" id="header-meta"></div>
+  </div>
+</header>
+
+<main>
+  <!-- KOSPI / KOSDAQ 지수 스트립 -->
+  <div class="index-strip" id="index-strip"></div>
+
+  <!-- 종가 배너 -->
+  <div id="price-banner"></div>
+
+  <!-- 탭 네비게이션 -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="price">시세 현황</button>
+    <button class="tab-btn" data-tab="info">종목 정보</button>
+    <button class="tab-btn" data-tab="investor">투자자 동향</button>
+    <button class="tab-btn" data-tab="chart">주가 차트</button>
+  </nav>
+
+  <!-- 탭 1: 시세 현황 -->
+  <div id="tab-price" class="tab-panel active">
+    <div id="price-grid"></div>
+    <div class="card">
+      <div class="card-title">최근 7일 현황</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>기준일</th><th>시가</th><th>고가</th><th>저가</th>
+              <th>종가</th><th>전일대비</th><th>등락률</th><th>거래량</th>
+            </tr>
+          </thead>
+          <tbody id="stock-tbody">
+            <tr><td colspan="8" class="empty-state">헤더의 업데이트 버튼을 눌러 데이터를 수집하세요.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭 2: 종목 정보 -->
+  <div id="tab-info" class="tab-panel">
+    <div id="info-grid"></div>
+  </div>
+
+  <!-- 탭 3: 투자자 동향 -->
+  <div id="tab-investor" class="tab-panel">
+    <div id="investor-wrap"></div>
+  </div>
+
+  <!-- 탭 4: 주가 차트 -->
+  <div id="tab-chart" class="tab-panel">
+    <div class="card">
+      <div class="card-title">주가 추이 (종가)</div>
+      <div style="padding:16px 20px;">
+        <canvas id="price-chart" height="90"></canvas>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <div class="card-title">전체 주가 추이</div>
+      <div style="padding:12px 20px 16px;">
+        <img id="naver-full-chart"
+             alt="전체 주가 추이"
+             style="width:100%; border-radius:4px; display:block;" />
+      </div>
+    </div>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+<script>
+  const TICKER   = '211050';
+  const MAX_DAYS = 7;
+
+  const btnUpdate  = document.getElementById('btn-update');
+  const headerMeta = document.getElementById('header-meta');
+  const tbody      = document.getElementById('stock-tbody');
+  let priceChart   = null;
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  /* ── 숫자 포맷 ── */
+  function fmt(n)  { return n != null ? Number(n).toLocaleString('ko-KR') : '—'; }
+  function fmtW(n) { return n != null ? fmt(n) + '원' : '—'; }
+  function fmtVol(n) { return n != null ? fmt(n) + '주' : '—'; }
+
+  function fmtCap(n) {
+    if (n == null) return null;
+    const ok = n / 1e8;
+    if (ok >= 10000) return (ok / 10000).toFixed(2) + '조원';
+    if (ok >= 10)    return ok.toFixed(2) + '억원';
+    return Math.round(n / 1e4).toLocaleString('ko-KR') + '만원';
+  }
+
+  function cls(v) { return v > 0 ? 'up' : v < 0 ? 'down' : 'flat'; }
+
+  function signFmt(n) {
+    if (n == null) return '—';
+    return n > 0 ? `+${fmt(n)}` : fmt(n);
+  }
+
+  // 주수 단위 포맷 (투자자 동향용)
+  function fmtOk(n, showSign = false) {
+    if (n == null) return '—';
+    const prefix = showSign && n > 0 ? '+' : '';
+    return prefix + n.toLocaleString('ko-KR') + '주';
+  }
+
+  /* ── 탭1: 시세 현황 KPI ── */
+  function renderPriceMetrics(s) {
+    const grid = document.getElementById('price-grid');
+    if (!s) { grid.innerHTML = ''; return; }
+    const priceCards = [
+      { label: '시가', value: fmtW(s.open), na: s.open == null },
+      { label: '고가', value: fmtW(s.high), na: s.high == null, cls: s.high != null ? cls(s.high - s.close) : '' },
+      { label: '저가', value: fmtW(s.low),  na: s.low  == null, cls: s.low  != null ? cls(s.low  - s.close) : '' },
+    ];
+    const tradeCards = [
+      { label: '거래량',   value: fmtVol(s.volume), na: s.volume == null },
+      { label: '거래대금', value: fmtCap(s.trading_value) ?? '—',
+        note: s.trading_value == null ? '재수집 후 제공' : null, na: s.trading_value == null },
+      { label: s.prev_date ? `전일 종가 (${s.prev_date.slice(5).replace('-','/')})` : '전일 종가',
+        value: fmtW(s.prev_close), na: s.prev_close == null },
+    ];
+    function cardHtml(c) {
+      return `<div class="metric-card">
+        <div class="metric-label">${c.label}</div>
+        <div class="metric-value${c.na ? ' na' : ''}${c.cls ? ' ' + c.cls : ''}">${c.value}</div>
+        ${c.note ? `<div class="metric-note">${c.note}</div>` : ''}
+      </div>`;
+    }
+    grid.innerHTML = `
+      <div class="metrics-section">
+        <div class="metrics-section-title">가격</div>
+        <div class="metrics-grid">${priceCards.map(cardHtml).join('')}</div>
+      </div>
+      <div class="metrics-section">
+        <div class="metrics-section-title">거래</div>
+        <div class="metrics-grid">${tradeCards.map(cardHtml).join('')}</div>
+      </div>`;
+  }
+
+  /* ── 탭2: 종목 정보 KPI ── */
+  function renderInfoMetrics(s) {
+    const grid = document.getElementById('info-grid');
+    if (!s) { grid.innerHTML = ''; return; }
+
+    const infoCards = [
+      { label: '52주 최고가', value: fmtW(s.week52_high) ?? '—', na: s.week52_high == null },
+      { label: '52주 최저가', value: fmtW(s.week52_low)  ?? '—', na: s.week52_low  == null },
+      { label: '상장 주식수',
+        value: s.listed_shares != null
+          ? Math.round(s.listed_shares / 10000).toLocaleString('ko-KR') + '만주' : '—',
+        note: s.listed_shares == null ? '장 마감 후 제공' : null, na: s.listed_shares == null },
+      { label: '시가총액', value: fmtCap(s.market_cap) ?? '—',
+        note: s.market_cap == null ? '장 마감 후 제공' : null, na: s.market_cap == null },
+      { _custom: 'rank' },
+      { _custom: 'foreign' },
+    ];
+
+    const finCards = [
+      { label: '당기순이익(TTM)',
+        value: s.net_income_ttm != null
+          ? Math.round(s.net_income_ttm / 1e8).toLocaleString('ko-KR') + '억' : '—',
+        note: s.net_income_ttm == null ? 'DART 미연동' : null, na: s.net_income_ttm == null },
+      { label: '자본총액', value: s.equity != null ? fmtCap(s.equity) : '0원', na: false },
+      { label: 'EPS', value: s.eps != null ? fmtW(s.eps) : '—',
+        note: s.eps == null ? '장 마감 후 제공' : null, na: s.eps == null },
+      { label: 'PER', value: s.per != null ? s.per + '배' : '—',
+        note: s.per == null ? '장 마감 후 제공' : null, na: s.per == null },
+      { label: 'BPS', value: s.bps != null ? fmtW(s.bps) : '—',
+        note: s.bps == null ? '장 마감 후 제공' : null, na: s.bps == null },
+      { label: 'PBR', value: s.pbr != null ? s.pbr + '배' : '—',
+        note: s.pbr == null ? '장 마감 후 제공' : null, na: s.pbr == null },
+    ];
+
+    function cardHtml(c) {
+      if (c._custom === 'rank') return `
+        <div class="metric-card">
+          <div class="metric-label">시총 순위</div>
+          <div class="metric-value${s.cap_rank == null ? ' na' : ''}">
+            ${s.cap_rank != null ? `${s.cap_rank.toLocaleString('ko-KR')}위 <span class="rank-badge">KOSDAQ</span>` : '—'}
+          </div>
+          ${s.cap_rank == null ? `<div class="metric-note">장 마감 후 제공</div>` : ''}
+        </div>`;
+      if (c._custom === 'foreign') return `
+        <div class="metric-card">
+          <div class="metric-label">외국인 소진율</div>
+          <div class="metric-value${s.exhaustion_rate == null ? ' na' : ''}">
+            ${s.exhaustion_rate != null ? s.exhaustion_rate + '%' : '—'}
+          </div>
+          ${s.exhaustion_rate != null
+            ? `<div class="progress-wrap"><div class="progress-bar" style="width:${Math.min(s.exhaustion_rate, 100)}%"></div></div>`
+            : `<div class="metric-note">장 마감 후 제공</div>`}
+        </div>`;
+      return `<div class="metric-card">
+        <div class="metric-label">${c.label}</div>
+        <div class="metric-value${c.na ? ' na' : ''}">${c.value}</div>
+        ${c.note ? `<div class="metric-note">${c.note}</div>` : ''}
+      </div>`;
+    }
+
+    grid.innerHTML = `
+      <div class="metrics-section">
+        <div class="metrics-section-title">종목 현황</div>
+        <div class="metrics-grid">${infoCards.map(cardHtml).join('')}</div>
+      </div>
+      <div class="metrics-section">
+        <div class="metrics-section-title">재무 지표</div>
+        <div class="metrics-grid">${finCards.map(cardHtml).join('')}</div>
+      </div>`;
+  }
+
+  /* ── KOSPI/KOSDAQ 지수 스트립 렌더 ── */
+  function renderIndexStrip(s) {
+    const strip = document.getElementById('index-strip');
+    if (!s) { strip.innerHTML = ''; return; }
+
+    function indexCard(name, data) {
+      if (!data || data.close == null) {
+        return `<div class="index-card">
+          <div><div class="index-name">${name}</div><div class="index-value" style="color:#4b5563">—</div></div>
+        </div>`;
+      }
+      const c = data.change_pct >= 0 ? 'up' : 'down';
+      const sign = data.change_pct >= 0 ? '+' : '';
+      return `<div class="index-card">
+        <div>
+          <div class="index-name">${name}</div>
+          <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+        </div>
+        <div class="index-delta ${c}">
+          ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+          <span class="index-pct">${sign}${data.change_pct}%</span>
+        </div>
+      </div>`;
+    }
+
+    strip.innerHTML = indexCard('KOSPI', s.kospi) + indexCard('KOSDAQ', s.kosdaq);
+  }
+
+  /* ── 종가 배너 렌더 ── */
+  function renderPriceBanner(s) {
+    const el = document.getElementById('price-banner');
+    if (!s) { el.innerHTML = ''; return; }
+
+    const c = cls(s.change_pct);
+    const sign = s.change > 0 ? '+' : '';
+    const fallbackBadge = s.is_fallback ? ' <span class="badge-fallback">전일</span>' : '';
+    el.innerHTML = `
+      <div class="price-banner">
+        <div>
+          <div class="price-banner-label">인카금융서비스 · 211050</div>
+          <div class="price-banner-date">${s.data_date}${fallbackBadge}</div>
+        </div>
+        <div class="price-banner-right">
+          <div class="price-banner-close ${c}">${s.close != null ? s.close.toLocaleString('ko-KR') + '원' : '—'}</div>
+          <div class="price-banner-change ${c}">
+            ${sign}${s.change != null ? s.change.toLocaleString('ko-KR') : '—'}원
+            &nbsp;(${sign}${s.change_pct != null ? s.change_pct + '%' : '—'})
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* ── 테이블 렌더 ── */
+  function renderRows(reports) {
+    if (!reports.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">데이터가 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = reports.map(report => {
+      const s = report.stocks?.[TICKER];
+      if (!s) return '';
+      const c   = cls(s.change_pct);
+      return `<tr>
+        <td>${s.data_date}</td>
+        <td>${fmt(s.open)}</td>
+        <td class="${cls(s.high - s.close)}">${fmt(s.high)}</td>
+        <td class="${cls(s.low - s.close)}">${fmt(s.low)}</td>
+        <td><strong>${fmt(s.close)}</strong></td>
+        <td class="${c}">${signFmt(s.change)}</td>
+        <td class="${c}">${s.change_pct > 0 ? '+' : ''}${s.change_pct}%</td>
+        <td>${fmt(s.volume)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── 탭3: 투자자 동향 렌더 ── */
+  function renderInvestor(latestStock, allReports) {
+    const wrap = document.getElementById('investor-wrap');
+    if (!latestStock) { wrap.innerHTML = ''; return; }
+
+    const recent5 = allReports.slice(0, 5);
+    const hasAnyData = recent5.some(r => {
+      const s = r.stocks?.[TICKER];
+      return s && [s.inst_net, s.indiv_net, s.foreign_net].some(v => v != null);
+    });
+
+    if (!hasAnyData) {
+      wrap.innerHTML = `
+        <div class="card">
+          <div class="card-title">투자자별 동향</div>
+          <p class="investor-na">장 마감 후 데이터가 제공됩니다.</p>
+        </div>`;
+      return;
+    }
+
+    const trendRows = recent5.map(r => {
+      const s = r.stocks?.[TICKER];
+      if (!s) return '';
+      return `<tr>
+        <td>${s.data_date}</td>
+        <td class="${s.inst_net    != null ? cls(s.inst_net)    : 'flat'}">${fmtOk(s.inst_net,    true)}</td>
+        <td class="${s.indiv_net   != null ? cls(s.indiv_net)   : 'flat'}">${fmtOk(s.indiv_net,   true)}</td>
+        <td class="${s.foreign_net != null ? cls(s.foreign_net) : 'flat'}">${fmtOk(s.foreign_net, true)}</td>
+      </tr>`;
+    }).join('');
+
+    const s = latestStock;
+    const detailRows = [
+      { label: '기관합계',   buy: s.inst_buy,    sell: s.inst_sell,    net: s.inst_net },
+      { label: '개인',       buy: s.indiv_buy,   sell: s.indiv_sell,   net: s.indiv_net },
+      { label: '외국인합계', buy: s.foreign_buy, sell: s.foreign_sell, net: s.foreign_net },
+    ];
+    const instDetails = [
+      { label: '금융투자', net: s.finv_net },
+      { label: '보험',     net: s.ins_net },
+      { label: '투신',     net: s.trust_net },
+      { label: '사모',     net: s.private_net },
+      { label: '은행',     net: s.bank_net },
+      { label: '기타금융', net: s.etc_fin_net },
+      { label: '연기금',   net: s.pension_net },
+    ];
+
+    wrap.innerHTML = `
+      <div class="investor-grid">
+        <div class="card">
+          <div class="card-title">최근 5거래일 순매수 동향 (주)</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>기준일</th><th>기관</th><th>개인</th><th>외국인</th></tr></thead>
+              <tbody>${trendRows}</tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">기관 세부 순매수 (주)</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>구분</th><th>순매수</th></tr></thead>
+              <tbody>
+                ${instDetails.map(d => {
+                  const c = d.net != null ? cls(d.net) : 'flat';
+                  return `<tr><td>${d.label}</td><td class="${c}">${fmtOk(d.net, true)}</td></tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">최신 기준일 매수·매도 상세</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>구분</th><th>매수</th><th>매도</th><th>순매수</th></tr></thead>
+            <tbody>
+              ${detailRows.map(r => {
+                const c = r.net != null ? cls(r.net) : 'flat';
+                return `<tr>
+                  <td>${r.label}</td>
+                  <td>${fmtOk(r.buy)}</td>
+                  <td>${fmtOk(r.sell)}</td>
+                  <td class="${c}">${fmtOk(r.net, true)}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  /* ── 탭4: 주가 차트 렌더 ── */
+  function renderChart(allReports) {
+    const sorted = [...allReports].reverse();
+    const labels = sorted.map(r => r.stocks?.[TICKER]?.data_date ?? r.date);
+    const closes = sorted.map(r => r.stocks?.[TICKER]?.close ?? null);
+
+    if (priceChart) priceChart.destroy();
+    priceChart = new Chart(document.getElementById('price-chart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: '종가',
+          data: closes,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37,99,235,0.07)',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { ticks: { callback: v => v.toLocaleString('ko-KR') + '원' } }
+        }
+      }
+    });
+
+    const naverImg = document.getElementById('naver-full-chart');
+    if (naverImg && !naverImg.src) {
+      naverImg.src = `https://ssl.pstatic.net/imgfinance/chart/item/area/year10/${TICKER}.png?sidcode=${Date.now()}`;
+    }
+  }
+
+  /* ── 전체 로드 ── */
+  async function loadAll() {
+    headerMeta.textContent = '불러오는 중…';
+    try {
+      const res   = await fetch('/api/dates', { cache: 'no-store' });
+      const dates = await res.json();
+
+      // 장 마감(KST 16:00) 이후에는 오늘 포함, 장중에는 오늘 제외 (미확정 데이터 방지)
+      const todayStr = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      const nowKSTHour = new Date(Date.now() + 9 * 3600 * 1000).getUTCHours();
+      const isMarketClosed = nowKSTHour >= 16;
+      const recent = (isMarketClosed ? dates : dates.filter(d => d !== todayStr)).slice(0, MAX_DAYS);
+
+      // 최신 리포트는 오늘 포함해서 가져옴 (KPI/지수 표시용)
+      const latestDate = dates[0];
+
+      if (!latestDate) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">아직 수집된 데이터가 없습니다.</td></tr>';
+        document.getElementById('price-grid').innerHTML = '';
+        document.getElementById('info-grid').innerHTML = '';
+        document.getElementById('investor-wrap').innerHTML = '';
+        document.getElementById('index-strip').innerHTML = '';
+        headerMeta.textContent = '';
+        return;
+      }
+
+      const [latestReport, ...histReports] = await Promise.all([
+        fetch(`/api/report/${latestDate}`, { cache: 'no-store' }).then(r => r.json()),
+        ...recent.map(d => fetch(`/api/report/${d}`, { cache: 'no-store' }).then(r => r.json())),
+      ]);
+
+      const latest = latestReport;
+      const latestStock = latest?.stocks?.[TICKER];
+
+      // 날짜 중복 제거 (장 마감 후엔 latestDate가 recent[0]과 동일)
+      const allReports = [latestReport, ...histReports].filter(
+        (r, i, arr) => i === arr.findIndex(x => x.date === r.date)
+      );
+
+      renderIndexStrip(latestStock);
+      renderPriceBanner(latestStock);
+      renderPriceMetrics(latestStock);
+      renderInfoMetrics(latestStock);
+      renderRows(recent.length ? histReports : []);
+      renderInvestor(latestStock, allReports);
+      renderChart(allReports);
+      headerMeta.textContent = latest?.generated_at
+        ? `최종 업데이트 ${latest.generated_at}`
+        : '';
+    } catch {
+      headerMeta.textContent = '로드 실패';
+    }
+  }
+
+  /* ── 업데이트 버튼 ── */
+  btnUpdate.addEventListener('click', async () => {
+    btnUpdate.disabled = true;
+    headerMeta.textContent = '수집 중… (수십 초 소요)';
+    try {
+      const res = await fetch('/api/generate', { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || res.status);
+      }
+      await loadAll();
+    } catch (e) {
+      headerMeta.textContent = `업데이트 실패: ${e.message}`;
+    } finally {
+      btnUpdate.disabled = false;
+    }
+  });
+
+  loadAll();
+</script>
+</body>
+</html>

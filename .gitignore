@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Internal project docs (not for public repo)
+docs/
+
+# Claude Code internal files
+.claude/
