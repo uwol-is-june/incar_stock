@@ -290,9 +290,65 @@
     .tab-btn:hover:not(.active) { color: #374151; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+
+    /* ─── 데이터 검증 탭 ─── */
+    .qc-summary {
+      display: flex;
+      gap: 20px;
+      padding: 12px 20px 10px;
+      font-size: 0.82rem;
+      border-bottom: 1px solid #f1f3f6;
+      flex-wrap: wrap;
+    }
+    .qc-summary span { display: flex; align-items: center; gap: 5px; }
+    .qc-summary strong { font-size: 1rem; font-weight: 700; }
+    .qc-ok    { color: #16a34a; font-weight: 600; }
+    .qc-warn  { color: #d97706; font-weight: 600; }
+    .qc-error { color: #dc2626; font-weight: 600; }
+    .qc-na    { color: #9ca3af; }
+    td.qc-msg { font-size: 0.78rem; color: #6b7280; white-space: normal; word-break: break-all; }
+
+    /* ─── 데이터 수집 중 오버레이 ─── */
+    #collecting-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(13, 27, 42, 0.93);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: #fff;
+      gap: 20px;
+    }
+    .collecting-spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .collecting-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .collecting-sub {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-top: -8px;
+    }
   </style>
 </head>
 <body>
+
+<div id="collecting-overlay">
+  <div class="collecting-spinner"></div>
+  <div class="collecting-title">데이터 수집 중입니다</div>
+  <div class="collecting-sub">잠시 후 다시 접속해주세요</div>
+</div>
 
 <header>
   <div class="header-left">
@@ -320,6 +376,7 @@
     <button class="tab-btn" data-tab="info">종목 정보</button>
     <button class="tab-btn" data-tab="investor">투자자 동향</button>
     <button class="tab-btn" data-tab="chart">주가 차트</button>
+    <button class="tab-btn" data-tab="quality">데이터 검증</button>
   </nav>
 
   <!-- 탭 1: 시세 현황 -->
@@ -353,12 +410,23 @@
     <div id="investor-wrap"></div>
   </div>
 
+  <!-- 탭 5: 데이터 검증 -->
+  <div id="tab-quality" class="tab-panel">
+    <div id="quality-wrap"></div>
+  </div>
+
   <!-- 탭 4: 주가 차트 -->
   <div id="tab-chart" class="tab-panel">
     <div class="card">
-      <div class="card-title">주가 추이 (종가)</div>
+      <div class="card-title">주가 추이 (최근 7거래일 · 캔들스틱)</div>
       <div style="padding:16px 20px;">
-        <canvas id="price-chart" height="90"></canvas>
+        <canvas id="price-chart" height="160"></canvas>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <div class="card-title">거래량 추이 (최근 7거래일)</div>
+      <div style="padding:16px 20px;">
+        <canvas id="volume-chart" height="100"></canvas>
       </div>
     </div>
     <div class="card" style="margin-top:12px;">
@@ -372,6 +440,8 @@
   </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2/dist/chartjs-chart-financial.min.js"></script>
 
 <script>
   const TICKER   = '211050';
@@ -380,6 +450,7 @@
   const headerMeta = document.getElementById('header-meta');
   const tbody      = document.getElementById('stock-tbody');
   let priceChart   = null;
+  let volumeChart  = null;
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -684,32 +755,73 @@
   }
 
   /* ── 탭4: 주가 차트 렌더 ── */
-  function renderChart(allReports) {
-    const sorted = [...allReports].reverse();
-    const labels = sorted.map(r => r.stocks?.[TICKER]?.data_date ?? r.date);
-    const closes = sorted.map(r => r.stocks?.[TICKER]?.close ?? null);
+  function renderChart(ohlcv7d) {
+    if (priceChart) { priceChart.destroy(); priceChart = null; }
+    if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
 
-    if (priceChart) priceChart.destroy();
+    const sorted = [...(ohlcv7d ?? [])].reverse(); // 오래된 날짜부터 정렬
+    if (!sorted.length) return;
+
+    const candleData = sorted.map(d => ({
+      x: new Date(d.date).getTime(),
+      o: d.open,
+      h: d.high,
+      l: d.low,
+      c: d.close,
+    }));
+
     priceChart = new Chart(document.getElementById('price-chart'), {
-      type: 'line',
+      type: 'candlestick',
       data: {
-        labels,
         datasets: [{
-          label: '종가',
-          data: closes,
-          borderColor: '#2563eb',
-          backgroundColor: 'rgba(37,99,235,0.07)',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          tension: 0.3,
-          fill: true,
+          label: '주가',
+          data: candleData,
+          color: {
+            up: '#dc2626',
+            down: '#2563eb',
+            unchanged: '#6b7280',
+          },
         }]
       },
       options: {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-          y: { ticks: { callback: v => v.toLocaleString('ko-KR') + '원' } }
+          x: {
+            type: 'time',
+            time: { unit: 'day', displayFormats: { day: 'MM/dd' } },
+            ticks: { source: 'data', maxRotation: 0 },
+          },
+          y: {
+            ticks: { callback: v => v.toLocaleString('ko-KR') + '원' }
+          }
+        }
+      }
+    });
+
+    const volLabels = sorted.map(d => {
+      const dt = new Date(d.date + 'T00:00:00+09:00');
+      return `${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getDate()).padStart(2, '0')}`;
+    });
+    const volColors = sorted.map(d => d.close >= d.open ? '#dc2626' : '#2563eb');
+
+    volumeChart = new Chart(document.getElementById('volume-chart'), {
+      type: 'bar',
+      data: {
+        labels: volLabels,
+        datasets: [{
+          label: '거래량',
+          data: sorted.map(d => d.volume),
+          backgroundColor: volColors,
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { maxRotation: 0 } },
+          y: { ticks: { callback: v => v.toLocaleString('ko-KR') } }
         }
       }
     });
@@ -718,6 +830,224 @@
     if (naverImg && !naverImg.src) {
       naverImg.src = `https://ssl.pstatic.net/imgfinance/chart/item/area/year10/${TICKER}.png?sidcode=${Date.now()}`;
     }
+  }
+
+  /* ── 탭5: 데이터 정합성 체크 ── */
+  function runChecks(report) {
+    const s = report?.stocks?.[TICKER];
+    const results = [];
+
+    function check(label, fn) {
+      try { results.push({ label, ...fn(s) }); }
+      catch(e) { results.push({ label, status: 'error', msg: '오류: ' + e.message }); }
+    }
+
+    // 1. 필수 필드 null 여부
+    check('필수 필드 null 여부', s => {
+      if (!s) return { status: 'na', msg: '종목 데이터 없음' };
+      const nulls = ['close','open','high','low','volume','change','change_pct'].filter(f => s[f] == null);
+      if (nulls.length) return { status: 'error', msg: 'null: ' + nulls.join(', ') };
+      return { status: 'ok', msg: '모든 필수 필드 존재' };
+    });
+
+    // 2. 당일 OHLCV 범위 (H≥O,C; L≤O,C)
+    check('당일 OHLCV 범위', s => {
+      if (!s || s.high == null || s.low == null) return { status: 'na', msg: '데이터 없음' };
+      const ok = s.high >= s.open && s.high >= s.close && s.low <= s.open && s.low <= s.close;
+      if (!ok) return { status: 'error', msg: `H:${s.high} O:${s.open} C:${s.close} L:${s.low}` };
+      return { status: 'ok', msg: `H:${fmt(s.high)} ≥ O,C ≥ L:${fmt(s.low)}` };
+    });
+
+    // 3. 7거래일 OHLCV 범위 (전체 일자)
+    check('7거래일 OHLCV 범위', s => {
+      if (!s?.ohlcv_7d?.length) return { status: 'na', msg: '데이터 없음' };
+      const bad = s.ohlcv_7d.filter(d =>
+        d.high == null || d.low == null ||
+        d.high < d.open || d.high < d.close || d.low > d.open || d.low > d.close
+      );
+      if (bad.length) return { status: 'error', msg: `이상 날짜: ${bad.map(d=>d.date).join(', ')}` };
+      return { status: 'ok', msg: `${s.ohlcv_7d.length}일 모두 정상` };
+    });
+
+    // 4. 등락률 계산 정합성 (change/prev_close)
+    check('등락률 계산 정합성', s => {
+      if (!s || s.change == null || s.prev_close == null || s.change_pct == null)
+        return { status: 'na', msg: '데이터 없음' };
+      const calc = Math.round((s.change / s.prev_close) * 10000) / 100;
+      const diff = Math.abs(calc - s.change_pct);
+      if (diff > 0.05) return { status: 'error', msg: `계산 ${calc}% vs 저장 ${s.change_pct}%` };
+      if (diff > 0.01) return { status: 'warn', msg: `미세 차이 (${calc}% vs ${s.change_pct}%)` };
+      return { status: 'ok', msg: `${s.change_pct}% (계산 일치)` };
+    });
+
+    // 5. 종가 52주 범위 내
+    check('종가 52주 범위', s => {
+      if (!s || s.close == null || s.week52_high == null || s.week52_low == null)
+        return { status: 'na', msg: '데이터 없음' };
+      if (s.close > s.week52_high || s.close < s.week52_low)
+        return { status: 'error', msg: `종가 ${fmt(s.close)} ∉ [${fmt(s.week52_low)}, ${fmt(s.week52_high)}]` };
+      return { status: 'ok', msg: `${fmt(s.close)} ∈ [${fmt(s.week52_low)}, ${fmt(s.week52_high)}]` };
+    });
+
+    // 6. 거래량 양수
+    check('거래량 양수', s => {
+      if (!s || s.volume == null) return { status: 'na', msg: '데이터 없음' };
+      if (s.volume <= 0) return { status: 'error', msg: `거래량 ${s.volume}` };
+      return { status: 'ok', msg: `${fmt(s.volume)}주` };
+    });
+
+    // 7. 시가총액 검산 (종가 × 상장주식수)
+    check('시가총액 검산', s => {
+      if (!s || s.close == null || s.listed_shares == null || s.market_cap == null)
+        return { status: 'na', msg: '데이터 없음' };
+      const calc = s.close * s.listed_shares;
+      const diffPct = Math.abs(calc - s.market_cap) / s.market_cap * 100;
+      if (diffPct > 1) return { status: 'error', msg: `계산 ${(calc/1e8).toFixed(0)}억 vs 저장 ${(s.market_cap/1e8).toFixed(0)}억 (차이 ${diffPct.toFixed(2)}%)` };
+      if (diffPct > 0.1) return { status: 'warn', msg: `차이 ${diffPct.toFixed(3)}%` };
+      return { status: 'ok', msg: `${(s.market_cap/1e8).toFixed(0)}억원 (일치)` };
+    });
+
+    // 8. 기관 순매수 검산
+    check('기관 순매수 검산', s => {
+      if (!s || s.inst_buy == null || s.inst_sell == null || s.inst_net == null)
+        return { status: 'na', msg: '데이터 없음' };
+      const calc = s.inst_buy - s.inst_sell;
+      if (calc !== s.inst_net) return { status: 'error', msg: `계산 ${fmt(calc)} vs 저장 ${fmt(s.inst_net)}` };
+      return { status: 'ok', msg: `${fmt(s.inst_net)}주` };
+    });
+
+    // 9. 개인 순매수 검산
+    check('개인 순매수 검산', s => {
+      if (!s || s.indiv_buy == null || s.indiv_sell == null || s.indiv_net == null)
+        return { status: 'na', msg: '데이터 없음' };
+      const calc = s.indiv_buy - s.indiv_sell;
+      if (calc !== s.indiv_net) return { status: 'error', msg: `계산 ${fmt(calc)} vs 저장 ${fmt(s.indiv_net)}` };
+      return { status: 'ok', msg: `${fmt(s.indiv_net)}주` };
+    });
+
+    // 10. 외국인 순매수 검산
+    check('외국인 순매수 검산', s => {
+      if (!s || s.foreign_buy == null || s.foreign_sell == null || s.foreign_net == null)
+        return { status: 'na', msg: '데이터 없음' };
+      const calc = s.foreign_buy - s.foreign_sell;
+      if (calc !== s.foreign_net) return { status: 'error', msg: `계산 ${fmt(calc)} vs 저장 ${fmt(s.foreign_net)}` };
+      return { status: 'ok', msg: `${fmt(s.foreign_net)}주` };
+    });
+
+    // 11. PER 계산 검산 (종가/EPS)
+    check('PER 계산 검산', s => {
+      if (!s || s.close == null || s.eps == null || s.per == null)
+        return { status: 'na', msg: '데이터 없음' };
+      if (s.eps === 0) return { status: 'warn', msg: 'EPS = 0' };
+      const calc = Math.round((s.close / s.eps) * 100) / 100;
+      const diff = Math.abs(calc - s.per);
+      if (diff > 0.1) return { status: 'error', msg: `계산 ${calc}배 vs 저장 ${s.per}배` };
+      if (diff > 0.02) return { status: 'warn', msg: `미세 차이 ${calc}배 vs ${s.per}배` };
+      return { status: 'ok', msg: `${s.per}배 (일치)` };
+    });
+
+    // 12. PBR 계산 검산 (종가/BPS)
+    check('PBR 계산 검산', s => {
+      if (!s || s.close == null || s.bps == null || s.pbr == null)
+        return { status: 'na', msg: '데이터 없음' };
+      if (s.bps === 0) return { status: 'warn', msg: 'BPS = 0' };
+      const calc = Math.round((s.close / s.bps) * 100) / 100;
+      const diff = Math.abs(calc - s.pbr);
+      if (diff > 0.1) return { status: 'error', msg: `계산 ${calc}배 vs 저장 ${s.pbr}배` };
+      if (diff > 0.02) return { status: 'warn', msg: `미세 차이 ${calc}배 vs ${s.pbr}배` };
+      return { status: 'ok', msg: `${s.pbr}배 (일치)` };
+    });
+
+    // 13. TTM 순이익 검산 (분기합)
+    check('TTM 순이익 검산', s => {
+      if (!s?.dart_financials?.length || s.net_income_ttm == null)
+        return { status: 'na', msg: '데이터 없음 (DART 미연동)' };
+      const sum = s.dart_financials.reduce((acc, q) => acc + (q.net_income ?? 0), 0);
+      const diff = Math.abs(sum - s.net_income_ttm);
+      if (diff > 1000) return { status: 'error', msg: `계산 ${(sum/1e8).toFixed(2)}억 vs 저장 ${(s.net_income_ttm/1e8).toFixed(2)}억` };
+      return { status: 'ok', msg: `${(s.net_income_ttm/1e8).toFixed(2)}억 (${s.dart_financials.length}분기 합산 일치)` };
+    });
+
+    // 14. KOSPI 등락률 검산
+    check('KOSPI 등락률 검산', s => {
+      const k = s?.kospi;
+      if (!k || k.change == null || k.prev_close == null || k.change_pct == null)
+        return { status: 'na', msg: '데이터 없음' };
+      const calc = Math.round((k.change / k.prev_close) * 10000) / 100;
+      const diff = Math.abs(calc - k.change_pct);
+      if (diff > 0.05) return { status: 'error', msg: `계산 ${calc}% vs 저장 ${k.change_pct}%` };
+      if (diff > 0.01) return { status: 'warn', msg: `미세 차이 ${calc}% vs ${k.change_pct}%` };
+      return { status: 'ok', msg: `${k.change_pct}% (일치)` };
+    });
+
+    // 15. KOSDAQ 등락률 검산
+    check('KOSDAQ 등락률 검산', s => {
+      const k = s?.kosdaq;
+      if (!k || k.change == null || k.prev_close == null || k.change_pct == null)
+        return { status: 'na', msg: '데이터 없음' };
+      const calc = Math.round((k.change / k.prev_close) * 10000) / 100;
+      const diff = Math.abs(calc - k.change_pct);
+      if (diff > 0.05) return { status: 'error', msg: `계산 ${calc}% vs 저장 ${k.change_pct}%` };
+      if (diff > 0.01) return { status: 'warn', msg: `미세 차이 ${calc}% vs ${k.change_pct}%` };
+      return { status: 'ok', msg: `${k.change_pct}% (일치)` };
+    });
+
+    // 16. 날짜 정합성
+    check('날짜 정합성', s => {
+      if (!s) return { status: 'na', msg: '데이터 없음' };
+      const issues = [];
+      if (s.data_date !== report.date)
+        issues.push(`data_date(${s.data_date}) ≠ report.date(${report.date})`);
+      if (s.ohlcv_7d?.length && s.ohlcv_7d[0].date !== s.data_date)
+        issues.push(`ohlcv_7d[0].date(${s.ohlcv_7d[0].date}) ≠ data_date(${s.data_date})`);
+      if (issues.length) return { status: 'error', msg: issues.join('; ') };
+      return { status: 'ok', msg: `data_date ${s.data_date} 일치` };
+    });
+
+    return results;
+  }
+
+  function renderQuality(report) {
+    const wrap = document.getElementById('quality-wrap');
+    if (!report) { wrap.innerHTML = ''; return; }
+
+    const results = runChecks(report);
+    const ICON  = { ok: '✅', warn: '⚠️', error: '❌', na: '➖' };
+    const LABEL = { ok: '정상', warn: '경고', error: '오류', na: '데이터없음' };
+    const counts = { ok: 0, warn: 0, error: 0, na: 0 };
+    results.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
+
+    const rows = results.map((r, i) => `
+      <tr>
+        <td style="text-align:center; width:32px; color:#9ca3af; font-size:0.75rem;">${i + 1}</td>
+        <td style="width:100px;">${ICON[r.status] || '?'} <span class="qc-${r.status}">${LABEL[r.status] || r.status}</span></td>
+        <td style="font-weight:500;">${r.label}</td>
+        <td class="qc-msg">${r.msg}</td>
+      </tr>`).join('');
+
+    wrap.innerHTML = `
+      <div class="card">
+        <div class="card-title">데이터 정합성 체크 — ${report.date}</div>
+        <div class="qc-summary">
+          <span>✅ 정상 <strong class="qc-ok">${counts.ok}</strong></span>
+          <span>⚠️ 경고 <strong class="qc-warn">${counts.warn}</strong></span>
+          <span>❌ 오류 <strong class="qc-error">${counts.error}</strong></span>
+          <span>➖ 데이터없음 <strong class="qc-na">${counts.na}</strong></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:center;">#</th>
+                <th style="text-align:left;">상태</th>
+                <th style="text-align:left;">항목</th>
+                <th style="text-align:left;">내용</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
   }
 
   /* ── 선택 날짜 기준 렌더링 ── */
@@ -729,7 +1059,8 @@
     renderInfoMetrics(stock);
     renderRows(stock?.ohlcv_7d ?? []);
     renderInvestor(stock, allReports);
-    renderChart(allReports);
+    renderChart(stock?.ohlcv_7d);
+    renderQuality(selected);
   }
 
   /* ── 전체 로드 ── */
@@ -792,7 +1123,31 @@
     }
   });
 
-  loadAll();
+  /* ── GitHub Actions 실행 여부 확인 ── */
+  async function isGitHubActionsRunning() {
+    try {
+      const res = await fetch(
+        'https://api.github.com/repos/uwol-is-june/incar_stock/actions/runs?status=in_progress',
+        { headers: { 'Accept': 'application/vnd.github+json' } }
+      );
+      if (!res.ok) return false;
+      const data = await res.json();
+      return data.total_count > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  async function init() {
+    const running = await isGitHubActionsRunning();
+    if (running) {
+      document.getElementById('collecting-overlay').style.display = 'flex';
+      return;
+    }
+    loadAll();
+  }
+
+  init();
 </script>
 </body>
 </html>
