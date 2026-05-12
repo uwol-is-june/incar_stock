@@ -66,21 +66,6 @@
       align-items: center;
       gap: 8px;
     }
-    #btn-update {
-      padding: 6px 12px;
-      background: #1e3a5f;
-      color: #93c5fd;
-      border: 1px solid #2563eb;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.15s;
-    }
-    #btn-update:hover:not(:disabled) { background: #1d4ed8; color: #fff; }
-    #btn-update:disabled { opacity: 0.5; cursor: not-allowed; }
-
     /* ─── 본문 ─── */
     main { max-width: 1080px; margin: 24px auto; padding: 0 16px 32px; }
 
@@ -316,7 +301,6 @@
   </div>
   <div class="header-right">
     <div class="header-controls">
-      <button id="btn-update">↻ 업데이트</button>
       <select id="select-date"></select>
     </div>
     <div class="header-meta" id="header-meta"></div>
@@ -752,7 +736,7 @@
   async function loadAll() {
     headerMeta.textContent = '불러오는 중…';
     try {
-      const dates = await fetch('/api/dates', { cache: 'no-store' }).then(r => r.json());
+      const dates = await fetch('./reports/index.json', { cache: 'no-store' }).then(r => r.json());
 
       if (!dates.length) {
         tbody.innerHTML = '<tr><td colspan="8" class="empty-state">아직 수집된 데이터가 없습니다.</td></tr>';
@@ -778,7 +762,7 @@
 
       // 선택 날짜 + 나머지 날짜 병렬 로드
       const allReports = await Promise.all(
-        dates.map(d => fetch(`/api/report/${d}`, { cache: 'no-store' }).then(r => r.json()))
+        dates.map(d => fetch(`./reports/${d}.json`, { cache: 'no-store' }).then(r => r.json()))
       );
       allReports.sort((a, b) => b.date.localeCompare(a.date));
 
@@ -795,9 +779,9 @@
     headerMeta.textContent = '불러오는 중…';
     try {
       const selectedDate = selectDate.value;
-      const dates = await fetch('/api/dates', { cache: 'no-store' }).then(r => r.json());
+      const dates = await fetch('./reports/index.json', { cache: 'no-store' }).then(r => r.json());
       const allReports = await Promise.all(
-        dates.map(d => fetch(`/api/report/${d}`, { cache: 'no-store' }).then(r => r.json()))
+        dates.map(d => fetch(`./reports/${d}.json`, { cache: 'no-store' }).then(r => r.json()))
       );
       allReports.sort((a, b) => b.date.localeCompare(a.date));
       const selected = allReports.find(r => r.date === selectedDate) || allReports[0];
@@ -805,32 +789,6 @@
       headerMeta.textContent = selected?.generated_at ? `생성 ${selected.generated_at}` : '';
     } catch {
       headerMeta.textContent = '로드 실패';
-    }
-  });
-
-  const btnUpdate = document.getElementById('btn-update');
-  btnUpdate.addEventListener('click', async () => {
-    const selectedDate = selectDate.value;
-    if (!selectedDate) return;
-    btnUpdate.disabled = true;
-    btnUpdate.textContent = '업데이트 중…';
-    headerMeta.textContent = '데이터 재수집 중…';
-    try {
-      const res = await fetch(`/api/update/${selectedDate}`, { method: 'POST', cache: 'no-store' });
-      if (!res.ok) throw new Error((await res.json()).detail ?? res.statusText);
-      const dates = await fetch('/api/dates', { cache: 'no-store' }).then(r => r.json());
-      const allReports = await Promise.all(
-        dates.map(d => fetch(`/api/report/${d}`, { cache: 'no-store' }).then(r => r.json()))
-      );
-      allReports.sort((a, b) => b.date.localeCompare(a.date));
-      const selected = allReports.find(r => r.date === selectedDate) || allReports[0];
-      renderFor(selected, allReports);
-      headerMeta.textContent = selected?.generated_at ? `생성 ${selected.generated_at}` : '';
-    } catch (e) {
-      headerMeta.textContent = `업데이트 실패: ${e.message}`;
-    } finally {
-      btnUpdate.disabled = false;
-      btnUpdate.textContent = '↻ 업데이트';
     }
   });
 

@@ -15,6 +15,7 @@ def save(date_str: str, stocks: dict[str, dict], market_summary: str) -> Path:
     }
     path = REPORT_DIR / f"{date_str}.json"
     path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    update_index()
     return path
 
 
@@ -33,9 +34,15 @@ def list_dates() -> list[str]:
     if not REPORT_DIR.exists():
         return []
     return sorted(
-        [p.stem for p in REPORT_DIR.glob("*.json")],
+        [p.stem for p in REPORT_DIR.glob("*.json") if p.stem != "index"],
         reverse=True,
     )
+
+
+def update_index() -> None:
+    dates = list_dates()
+    index_path = REPORT_DIR / "index.json"
+    index_path.write_text(json.dumps(dates, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def prune(keep_n: int = 5) -> list[str]:
@@ -46,4 +53,5 @@ def prune(keep_n: int = 5) -> list[str]:
         if p.exists():
             p.unlink()
             deleted.append(d)
+    update_index()
     return deleted
