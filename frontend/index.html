@@ -778,8 +778,13 @@
     const sorted = [...(ohlcv7d ?? [])].reverse(); // 오래된 날짜부터 정렬
     if (!sorted.length) return;
 
-    const candleData = sorted.map(d => ({
-      x: new Date(d.date).getTime(),
+    const dateLabels = sorted.map(d => {
+      const dt = new Date(d.date + 'T00:00:00+09:00');
+      return `${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getDate()).padStart(2, '0')}`;
+    });
+
+    const candleData = sorted.map((d, i) => ({
+      x: i,
       o: d.open,
       h: d.high,
       l: d.low,
@@ -789,6 +794,7 @@
     priceChart = new Chart(document.getElementById('price-chart'), {
       type: 'candlestick',
       data: {
+        labels: dateLabels,
         datasets: [{
           label: '주가',
           data: candleData,
@@ -804,9 +810,8 @@
         plugins: { legend: { display: false } },
         scales: {
           x: {
-            type: 'time',
-            time: { unit: 'day', displayFormats: { day: 'MM/dd' } },
-            ticks: { source: 'data', maxRotation: 0 },
+            type: 'category',
+            ticks: { maxRotation: 0 },
           },
           y: {
             ticks: { callback: v => v.toLocaleString('ko-KR') + '원' }
@@ -815,10 +820,7 @@
       }
     });
 
-    const volLabels = sorted.map(d => {
-      const dt = new Date(d.date + 'T00:00:00+09:00');
-      return `${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getDate()).padStart(2, '0')}`;
-    });
+    const volLabels = dateLabels;
     const volColors = sorted.map(d => d.close >= d.open ? '#dc2626' : '#2563eb');
 
     volumeChart = new Chart(document.getElementById('volume-chart'), {
