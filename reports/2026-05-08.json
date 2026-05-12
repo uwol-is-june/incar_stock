@@ -1,6 +1,6 @@
 {
   "date": "2026-05-08",
-  "generated_at": "2026-05-11T16:57:23",
+  "generated_at": "2026-05-12T14:38:27",
   "market_summary": "",
   "stocks": {
     "211050": {
@@ -27,7 +27,7 @@
       "bps": 4443,
       "foreign_pct": 2.98,
       "exhaustion_rate": 2.98,
-      "cap_rank": null,
+      "cap_rank": 237,
       "kospi": {
         "close": 7498.0,
         "prev_close": 7490.05,
@@ -75,7 +75,80 @@
         }
       ],
       "net_income_ttm": 70953246000,
-      "comment": ""
+      "comment": "",
+      "ohlcv_7d": [
+        {
+          "date": "2026-05-08",
+          "open": 10050,
+          "high": 10660,
+          "low": 10050,
+          "close": 10440,
+          "volume": 122958,
+          "change": 370,
+          "change_pct": 3.67
+        },
+        {
+          "date": "2026-05-07",
+          "open": 10180,
+          "high": 10700,
+          "low": 10010,
+          "close": 10070,
+          "volume": 235129,
+          "change": -30,
+          "change_pct": -0.3
+        },
+        {
+          "date": "2026-05-06",
+          "open": 10450,
+          "high": 10700,
+          "low": 10030,
+          "close": 10100,
+          "volume": 160005,
+          "change": -350,
+          "change_pct": -3.35
+        },
+        {
+          "date": "2026-05-04",
+          "open": 10750,
+          "high": 10810,
+          "low": 10450,
+          "close": 10450,
+          "volume": 150368,
+          "change": -370,
+          "change_pct": -3.42
+        },
+        {
+          "date": "2026-04-30",
+          "open": 10810,
+          "high": 10990,
+          "low": 10700,
+          "close": 10820,
+          "volume": 121370,
+          "change": -90,
+          "change_pct": -0.82
+        },
+        {
+          "date": "2026-04-29",
+          "open": 10960,
+          "high": 11170,
+          "low": 10750,
+          "close": 10910,
+          "volume": 98318,
+          "change": -100,
+          "change_pct": -0.91
+        },
+        {
+          "date": "2026-04-28",
+          "open": 11100,
+          "high": 11210,
+          "low": 10850,
+          "close": 11010,
+          "volume": 123502,
+          "change": null,
+          "change_pct": null
+        }
+      ],
+      "equity": 214409548000
     }
   }
 }

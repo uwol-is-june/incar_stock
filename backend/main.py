@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 FRONTEND_DIR = BASE_DIR / "frontend"
 
 
-def _backfill_history(days_to_check: int = 14, max_missing: int = 7):
+def _backfill_history(days_to_check: int = 10, max_missing: int = 5):
     """과거 7영업일 리포트가 없으면 자동으로 백필."""
     today = date.today()
     filled = 0
@@ -51,6 +51,51 @@ def _backfill_history(days_to_check: int = 14, max_missing: int = 7):
             continue  # 비영업일
         reporter.save(d_str, hist, "")
         filled += 1
+    reporter.prune(5)
+
+
+def _patch_ohlcv_7d():
+    """ohlcv_7d 필드가 없는 기존 보고서를 재수집해서 패치."""
+    for date_str in reporter.list_dates():
+        report = reporter.load(date_str)
+        if report is None:
+            continue
+        stocks = report.get("stocks", {})
+        if not any("ohlcv_7d" not in v for v in stocks.values()):
+            continue  # 이미 모두 패치됨
+        try:
+            fresh = collector.collect_for_date(date_str)
+        except Exception as e:
+            logger.warning("[patch_ohlcv_7d] %s collect 실패: %s", date_str, e)
+            continue
+        if not fresh:
+            continue
+        for ticker, d in fresh.items():
+            if ticker in stocks and "ohlcv_7d" in d:
+                stocks[ticker]["ohlcv_7d"] = d["ohlcv_7d"]
+        reporter.save(date_str, stocks, report.get("market_summary", ""))
+        logger.info("[patch_ohlcv_7d] %s 패치 완료", date_str)
+
+
+def _patch_null_cap_ranks():
+    """cap_rank가 null인 기존 리포트를 재조회해서 채운다."""
+    for date_str in reporter.list_dates():
+        report = reporter.load(date_str)
+        if report is None:
+            continue
+        stocks = report.get("stocks", {})
+        changed = False
+        for ticker, s in stocks.items():
+            if s.get("cap_rank") is not None:
+                continue
+            date_ymd = s.get("data_date", date_str).replace("-", "")
+            rank = collector._fetch_market_cap_ranking(ticker, date_ymd)
+            if rank is not None:
+                s["cap_rank"] = rank
+                changed = True
+                logger.info("[patch_null_cap_ranks] %s/%s cap_rank=%d", date_str, ticker, rank)
+        if changed:
+            reporter.save(date_str, stocks, report.get("market_summary", ""))
 
 
 async def _auto_collect_job():
@@ -63,6 +108,7 @@ async def _auto_collect_job():
         stocks = collector.collect()
         if stocks:
             reporter.save(today, stocks, "")
+            reporter.prune(5)
             logger.info("[scheduler] %s 자동 수집 완료 (%d종목)", today, len(stocks))
     except Exception as e:
         logger.error("[scheduler] %s 자동 수집 실패: %s", today, e)
@@ -72,6 +118,8 @@ async def _auto_collect_job():
 async def lifespan(app: FastAPI):
     loop = asyncio.get_event_loop()
     loop.run_in_executor(None, _backfill_history)
+    loop.run_in_executor(None, _patch_ohlcv_7d)
+    loop.run_in_executor(None, _patch_null_cap_ranks)
 
     scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
     scheduler.add_job(_auto_collect_job, "cron", hour=16, minute=10)
@@ -110,8 +158,9 @@ def generate(background_tasks: BackgroundTasks):
     date_str = max(data_dates) if data_dates else date.today().isoformat()
 
     reporter.save(date_str, enriched, market_summary)
+    reporter.prune(5)
 
-    # 과거 7영업일 백필 — 응답 반환 후 백그라운드에서 실행
+    # 과거 5영업일 백필 — 응답 반환 후 백그라운드에서 실행
     background_tasks.add_task(_backfill_history)
 
     return reporter.load(date_str)
@@ -158,6 +207,138 @@ def backfill_investor():
         patched.append(date_str)
         logger.info("[backfill-investor] %s 패치 완료", date_str)
     return {"patched": patched, "skipped": skipped}
+
+
+@app.post("/api/backfill-missing")
+def backfill_missing():
+    """
+    기존 리포트에서 None인 필드를 collect_for_date()로 재수집해 채움.
+    - prev_close, trading_value 등 구 포맷 리포트 누락 필드 복구
+    - 기존 non-null 값은 덮어쓰지 않음
+    """
+    _PATCHABLE = (
+        "prev_close", "prev_date", "trading_value",
+        "open", "high", "low", "volume",
+        "week52_high", "week52_low",
+        "listed_shares", "market_cap",
+        "per", "pbr", "eps", "bps", "equity",
+        "foreign_pct", "exhaustion_rate",
+        "net_income_ttm", "dart_financials",
+    )
+    patched, skipped = [], []
+    for date_str in reporter.list_dates():
+        report = reporter.load(date_str)
+        if report is None:
+            continue
+        stocks = report.get("stocks", {})
+        needs = any(s.get(k) is None for s in stocks.values() for k in _PATCHABLE)
+        if not needs:
+            skipped.append(date_str)
+            continue
+        try:
+            fresh = collector.collect_for_date(date_str)
+        except Exception as e:
+            logger.warning("[backfill-missing] %s collect 실패: %s", date_str, e)
+            continue
+        if not fresh:
+            skipped.append(date_str)
+            continue
+        changed = False
+        for ticker, d in fresh.items():
+            if ticker not in stocks:
+                continue
+            for k in _PATCHABLE:
+                if stocks[ticker].get(k) is None and d.get(k) is not None:
+                    stocks[ticker][k] = d[k]
+                    changed = True
+        if changed:
+            reporter.save(date_str, stocks, report.get("market_summary", ""))
+            patched.append(date_str)
+            logger.info("[backfill-missing] %s 패치 완료", date_str)
+        else:
+            skipped.append(date_str)
+    return {"patched": patched, "skipped": skipped}
+
+
+@app.post("/api/backfill-index")
+def backfill_index():
+    """
+    기존 리포트의 kospi/kosdaq 필드를 collect_for_date()로 재수집해서 패치.
+    - 필드 누락 리포트(구 포맷) 복구
+    - 잘못된 인덱스 값 교체
+    """
+    patched, skipped = [], []
+    for date_str in reporter.list_dates():
+        report = reporter.load(date_str)
+        if report is None:
+            continue
+        stocks = report.get("stocks", {})
+        try:
+            fresh = collector.collect_for_date(date_str)
+        except Exception as e:
+            logger.warning("[backfill-index] %s collect 실패: %s", date_str, e)
+            continue
+        if not fresh:
+            skipped.append(date_str)
+            continue
+        changed = False
+        for ticker, d in fresh.items():
+            if ticker in stocks:
+                for key in ("kospi", "kosdaq"):
+                    if key in d:
+                        stocks[ticker][key] = d[key]
+                        changed = True
+        if changed:
+            reporter.save(date_str, stocks, report.get("market_summary", ""))
+            patched.append(date_str)
+            logger.info("[backfill-index] %s 패치 완료", date_str)
+        else:
+            skipped.append(date_str)
+    return {"patched": patched, "skipped": skipped}
+
+
+@app.post("/api/backfill-cap-rank")
+def backfill_cap_rank():
+    """기존 리포트의 cap_rank를 각 기준일 날짜로 재수집해서 패치."""
+    patched, skipped, failed = [], [], []
+    for date_str in reporter.list_dates():
+        report = reporter.load(date_str)
+        if report is None:
+            continue
+        stocks = report.get("stocks", {})
+        changed = False
+        for ticker, s in stocks.items():
+            data_date = s.get("data_date", date_str)
+            date_ymd = data_date.replace("-", "")
+            rank = collector._fetch_market_cap_ranking(ticker, date_ymd)
+            if rank is not None:
+                s["cap_rank"] = rank
+                changed = True
+            else:
+                failed.append(f"{date_str}/{ticker}")
+        if changed:
+            reporter.save(date_str, stocks, report.get("market_summary", ""))
+            patched.append(date_str)
+            logger.info("[backfill-cap-rank] %s 패치 완료", date_str)
+        else:
+            skipped.append(date_str)
+    return {"patched": patched, "skipped": skipped, "failed": failed}
+
+
+@app.post("/api/update/{date_str}")
+def update_report(date_str: str):
+    if not reporter.exists(date_str):
+        raise HTTPException(status_code=404, detail=f"{date_str} 리포트가 없습니다.")
+    existing = reporter.load(date_str)
+    market_summary = existing.get("market_summary", "") if existing else ""
+    try:
+        stocks = collector.collect_for_date(date_str)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    if not stocks:
+        raise HTTPException(status_code=503, detail=f"{date_str} 데이터를 가져올 수 없습니다.")
+    reporter.save(date_str, stocks, market_summary)
+    return reporter.load(date_str)
 
 
 @app.get("/api/dates")

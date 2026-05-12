@@ -36,3 +36,14 @@ def list_dates() -> list[str]:
         [p.stem for p in REPORT_DIR.glob("*.json")],
         reverse=True,
     )
+
+
+def prune(keep_n: int = 5) -> list[str]:
+    """최신 keep_n개만 남기고 나머지 JSON 파일 삭제."""
+    deleted = []
+    for d in list_dates()[keep_n:]:
+        p = REPORT_DIR / f"{d}.json"
+        if p.exists():
+            p.unlink()
+            deleted.append(d)
+    return deleted

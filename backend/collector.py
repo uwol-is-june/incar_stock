@@ -38,7 +38,12 @@ def _fetch_ohlcv(ticker: str, days_back: int = 365):
 def _fetch_fundamental(ticker: str):
     try:
         s, e = _date_range()
-        return stock.get_market_fundamental(s, e, ticker)
+        df = stock.get_market_fundamental(s, e, ticker)
+        # pykrx는 KRX 미업데이트 날짜에 0을 채움 → dropna()가 걸러낼 수 있게 NaN으로 교체
+        for col in ("EPS", "BPS", "PER", "PBR"):
+            if col in df.columns:
+                df[col] = df[col].replace(0, float("nan"))
+        return df
     except Exception:
         return None
 
@@ -322,6 +327,30 @@ def collect() -> dict[str, dict]:
         change = curr_close - prev_close
         change_pct = round(change / prev_close * 100, 2) if prev_close else 0.0
 
+        # 최근 7거래일 OHLCV 내장 (curr_row 기준)
+        _n = len(df)
+        _abs_end = _n + curr_row + 1
+        _abs_start = max(0, _abs_end - 7)
+        _slice = df.iloc[_abs_start:_abs_end]
+        _prev_c = None
+        ohlcv_7d = []
+        for _idx, _row in _slice.iterrows():
+            _c = int(_row["종가"])
+            _ch = (_c - _prev_c) if _prev_c is not None else None
+            _ch_pct = round(_ch / _prev_c * 100, 2) if _prev_c else None
+            ohlcv_7d.append({
+                "date":       _idx.date().isoformat(),
+                "open":       int(_row["시가"]),
+                "high":       int(_row["고가"]),
+                "low":        int(_row["저가"]),
+                "close":      _c,
+                "volume":     int(_row["거래량"]),
+                "change":     _ch,
+                "change_pct": _ch_pct,
+            })
+            _prev_c = _c
+        ohlcv_7d.reverse()
+
         # OHLCV에서 curr_row 기준 필드
         def _row_int(col):
             try:
@@ -379,6 +408,7 @@ def collect() -> dict[str, dict]:
             "is_fallback": is_fallback,
             "data_date":   data_date,
             "prev_date":   prev_date,
+            "ohlcv_7d":    ohlcv_7d,
             # OHLCV 추가 필드 (항상 사용 가능)
             "open":        open_price,
             "high":        high_price,
@@ -394,7 +424,7 @@ def collect() -> dict[str, dict]:
             "pbr":             _pbr,
             "eps":             _safe_int(_latest(df_fund, "EPS")),
             "bps":             _bps,
-            "equity":          _equity,
+            "equity":          dart_equity or _equity,
             "foreign_pct":     _safe_float(_latest(df_foreign, "지분율")),
             "exhaustion_rate": _safe_float(_latest(df_foreign, "한도소진율")),
             "cap_rank":        cap_rank,
@@ -434,7 +464,7 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
     - 비영업일이면 빈 dict 반환
     """
     target_dt = date.fromisoformat(target_date)
-    start_ymd = (target_dt - timedelta(days=10)).strftime("%Y%m%d")
+    start_ymd = (target_dt - timedelta(days=14)).strftime("%Y%m%d")
     end_ymd   = target_dt.strftime("%Y%m%d")
     result = {}
 
@@ -478,13 +508,63 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
         except Exception:
             df_cap = None
 
-        # 지수 데이터 (target_date 전후 5일)
-        idx_start = (target_dt - timedelta(days=5)).strftime("%Y%m%d")
+        # 지수 데이터 (target_date 전후 10일)
+        idx_start = (target_dt - timedelta(days=10)).strftime("%Y%m%d")
         df_kospi  = _fetch_index("1001", idx_start, end_ymd)
         df_kosdaq = _fetch_index("2001", idx_start, end_ymd)
 
         # 투자자별 일별 순매수 (단일일 조회)
         df_inv = _fetch_investor_trading(ticker, end_ymd)
+
+        # 펀더멘털 (per, pbr, eps, bps)
+        try:
+            df_fund = stock.get_market_fundamental(start_ymd, end_ymd, ticker)
+            for col in ("EPS", "BPS", "PER", "PBR"):
+                if col in df_fund.columns:
+                    df_fund[col] = df_fund[col].replace(0, float("nan"))
+        except Exception:
+            df_fund = None
+
+        # 외국인 소진율
+        try:
+            df_foreign_raw = stock.get_exhaustion_rates_of_foreign_investment_by_date(start_ymd, end_ymd, ticker)
+            df_foreign_raw.columns = ["상장주식수", "보유수량", "지분율", "한도수량", "한도소진율"]
+            df_foreign = df_foreign_raw
+        except Exception:
+            df_foreign = None
+
+        # DART (net_income_ttm, equity)
+        dart_result_fd   = _fetch_dart_fs(ticker)
+        dart_fins_fd     = dart_result_fd["financials"]
+        dart_equity_fd   = dart_result_fd["equity"]
+        _ttm_fd = [q["net_income"] for q in dart_fins_fd if q.get("net_income") is not None]
+        net_income_ttm_fd = sum(_ttm_fd) if len(_ttm_fd) == 4 else None
+
+        _bps_fd    = _safe_int(_latest(df_fund, "BPS"))
+        _listed_fd = _safe_int(_at_date(df_cap, target_date, "상장주식수"))
+        _equity_fd = dart_equity_fd or (_bps_fd * _listed_fd if _bps_fd and _listed_fd else None)
+
+        # 최근 7거래일 OHLCV 내장
+        _n = len(df)
+        _slice = df.iloc[max(0, _n - 7):_n]
+        _prev_c = None
+        ohlcv_7d = []
+        for _idx, _row in _slice.iterrows():
+            _c = int(_row["종가"])
+            _ch = (_c - _prev_c) if _prev_c is not None else None
+            _ch_pct = round(_ch / _prev_c * 100, 2) if _prev_c else None
+            ohlcv_7d.append({
+                "date":       _idx.date().isoformat(),
+                "open":       int(_row["시가"]),
+                "high":       int(_row["고가"]),
+                "low":        int(_row["저가"]),
+                "close":      _c,
+                "volume":     int(_row["거래량"]),
+                "change":     _ch,
+                "change_pct": _ch_pct,
+            })
+            _prev_c = _c
+        ohlcv_7d.reverse()
 
         result[ticker] = {
             "close":           curr_close,
@@ -493,6 +573,7 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
             "change_pct":      change_pct,
             "is_fallback":     False,
             "data_date":       target_date,
+            "ohlcv_7d":        ohlcv_7d,
             "open":            _row_int("시가"),
             "high":            _row_int("고가"),
             "low":             _row_int("저가"),
@@ -500,16 +581,18 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
             "trading_value":   _safe_int(_at_date(df_cap, target_date, "거래대금")),
             "week52_high":     week52_high,
             "week52_low":      week52_low,
-            "market_cap":      None,
-            "listed_shares":   None,
-            "per":             None,
-            "pbr":             None,
-            "eps":             None,
-            "bps":             None,
-            "equity":          None,
-            "foreign_pct":     None,
-            "exhaustion_rate": None,
-            "cap_rank":        None,
+            "market_cap":      _safe_int(_at_date(df_cap, target_date, "시가총액")),
+            "listed_shares":   _listed_fd,
+            "per":             _safe_float(_latest(df_fund, "PER")),
+            "pbr":             _safe_float(_latest(df_fund, "PBR")),
+            "eps":             _safe_int(_latest(df_fund, "EPS")),
+            "bps":             _bps_fd,
+            "equity":          _equity_fd,
+            "foreign_pct":     _safe_float(_latest(df_foreign, "지분율")),
+            "exhaustion_rate": _safe_float(_latest(df_foreign, "한도소진율")),
+            "cap_rank":        _fetch_market_cap_ranking(ticker, end_ymd),
+            "dart_financials": dart_fins_fd,
+            "net_income_ttm":  net_income_ttm_fd,
             "kospi":           _index_snapshot(df_kospi),
             "kosdaq":          _index_snapshot(df_kosdaq),
             "inst_buy":     _investor_val(df_inv, "기관합계",  "매수"),

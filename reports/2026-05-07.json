@@ -1,6 +1,6 @@
 {
   "date": "2026-05-07",
-  "generated_at": "2026-05-11T16:57:23",
+  "generated_at": "2026-05-12T14:38:55",
   "market_summary": "",
   "stocks": {
     "211050": {
@@ -25,9 +25,9 @@
       "eps": 1480,
       "div": 3.54,
       "dps": 370,
-      "foreign_pct": null,
-      "exhaustion_rate": null,
-      "cap_rank": null,
+      "foreign_pct": 2.78,
+      "exhaustion_rate": 2.78,
+      "cap_rank": 244,
       "kospi": {
         "close": 7490.05,
         "prev_close": 7384.56,
@@ -56,7 +56,100 @@
       "comment": "",
       "bank_net": 0,
       "etc_fin_net": -27542,
-      "pension_net": 0
+      "pension_net": 0,
+      "ohlcv_7d": [
+        {
+          "date": "2026-05-07",
+          "open": 10180,
+          "high": 10700,
+          "low": 10010,
+          "close": 10070,
+          "volume": 235129,
+          "change": -30,
+          "change_pct": -0.3
+        },
+        {
+          "date": "2026-05-06",
+          "open": 10450,
+          "high": 10700,
+          "low": 10030,
+          "close": 10100,
+          "volume": 160005,
+          "change": -350,
+          "change_pct": -3.35
+        },
+        {
+          "date": "2026-05-04",
+          "open": 10750,
+          "high": 10810,
+          "low": 10450,
+          "close": 10450,
+          "volume": 150368,
+          "change": -370,
+          "change_pct": -3.42
+        },
+        {
+          "date": "2026-04-30",
+          "open": 10810,
+          "high": 10990,
+          "low": 10700,
+          "close": 10820,
+          "volume": 121370,
+          "change": -90,
+          "change_pct": -0.82
+        },
+        {
+          "date": "2026-04-29",
+          "open": 10960,
+          "high": 11170,
+          "low": 10750,
+          "close": 10910,
+          "volume": 98318,
+          "change": -100,
+          "change_pct": -0.91
+        },
+        {
+          "date": "2026-04-28",
+          "open": 11100,
+          "high": 11210,
+          "low": 10850,
+          "close": 11010,
+          "volume": 123502,
+          "change": -50,
+          "change_pct": -0.45
+        },
+        {
+          "date": "2026-04-27",
+          "open": 11180,
+          "high": 11450,
+          "low": 11060,
+          "close": 11060,
+          "volume": 91185,
+          "change": null,
+          "change_pct": null
+        }
+      ],
+      "bps": 4391,
+      "equity": 214409548000,
+      "net_income_ttm": 70953246000,
+      "dart_financials": [
+        {
+          "period": "2025/Q4",
+          "net_income": 16708044000
+        },
+        {
+          "period": "2025/Q3",
+          "net_income": 21241516000
+        },
+        {
+          "period": "2025/Q2",
+          "net_income": 17333255000
+        },
+        {
+          "period": "2025/Q1",
+          "net_income": 15670431000
+        }
+      ]
     }
   }
 }
