@@ -1,0 +1,152 @@
+{
+  "date": "2026-05-12",
+  "generated_at": "2026-05-12T06:51:10",
+  "market_summary": "",
+  "stocks": {
+    "211050": {
+      "close": 10330,
+      "prev_close": 10440,
+      "change": -110,
+      "change_pct": -1.05,
+      "is_fallback": true,
+      "data_date": "2026-05-11",
+      "prev_date": "2026-05-08",
+      "ohlcv_7d": [
+        {
+          "date": "2026-05-11",
+          "open": 10530,
+          "high": 10650,
+          "low": 10280,
+          "close": 10330,
+          "volume": 134628,
+          "change": -110,
+          "change_pct": -1.05
+        },
+        {
+          "date": "2026-05-08",
+          "open": 10050,
+          "high": 10660,
+          "low": 10050,
+          "close": 10440,
+          "volume": 122958,
+          "change": 370,
+          "change_pct": 3.67
+        },
+        {
+          "date": "2026-05-07",
+          "open": 10180,
+          "high": 10700,
+          "low": 10010,
+          "close": 10070,
+          "volume": 235129,
+          "change": -30,
+          "change_pct": -0.3
+        },
+        {
+          "date": "2026-05-06",
+          "open": 10450,
+          "high": 10700,
+          "low": 10030,
+          "close": 10100,
+          "volume": 160005,
+          "change": -350,
+          "change_pct": -3.35
+        },
+        {
+          "date": "2026-05-04",
+          "open": 10750,
+          "high": 10810,
+          "low": 10450,
+          "close": 10450,
+          "volume": 150368,
+          "change": -370,
+          "change_pct": -3.42
+        },
+        {
+          "date": "2026-04-30",
+          "open": 10810,
+          "high": 10990,
+          "low": 10700,
+          "close": 10820,
+          "volume": 121370,
+          "change": -90,
+          "change_pct": -0.82
+        },
+        {
+          "date": "2026-04-29",
+          "open": 10960,
+          "high": 11170,
+          "low": 10750,
+          "close": 10910,
+          "volume": 98318,
+          "change": null,
+          "change_pct": null
+        }
+      ],
+      "open": 10530,
+      "high": 10650,
+      "low": 10280,
+      "volume": 134628,
+      "trading_value": 1398646630,
+      "week52_high": 17330,
+      "week52_low": 8200,
+      "market_cap": 508893576810,
+      "listed_shares": 49263657,
+      "per": 6.74,
+      "pbr": 2.27,
+      "eps": 1480,
+      "bps": 4391,
+      "equity": 214409548000,
+      "foreign_pct": 2.95,
+      "exhaustion_rate": 2.95,
+      "cap_rank": null,
+      "kospi": {
+        "close": 7822.24,
+        "prev_close": 7498.0,
+        "change": 324.24,
+        "change_pct": 4.32
+      },
+      "kosdaq": {
+        "close": 1207.34,
+        "prev_close": 1207.72,
+        "change": -0.38,
+        "change_pct": -0.03
+      },
+      "inst_buy": 47568,
+      "inst_sell": 50390,
+      "inst_net": -2822,
+      "indiv_buy": 32891,
+      "indiv_sell": 26573,
+      "indiv_net": 6318,
+      "foreign_buy": 45237,
+      "foreign_sell": 51711,
+      "foreign_net": -6474,
+      "finv_net": -39307,
+      "ins_net": -24,
+      "trust_net": 0,
+      "private_net": 36509,
+      "bank_net": 0,
+      "etc_fin_net": 0,
+      "pension_net": 0,
+      "dart_financials": [
+        {
+          "period": "2025/Q4",
+          "net_income": 16708044000
+        },
+        {
+          "period": "2025/Q3",
+          "net_income": 21241516000
+        },
+        {
+          "period": "2025/Q2",
+          "net_income": 17333255000
+        },
+        {
+          "period": "2025/Q1",
+          "net_income": 15670431000
+        }
+      ],
+      "net_income_ttm": 70953246000
+    }
+  }
+}
