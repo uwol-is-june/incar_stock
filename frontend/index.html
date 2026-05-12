@@ -188,6 +188,17 @@
     @media (max-width: 640px) {
       .investor-grid { grid-template-columns: 1fr; }
     }
+
+    /* ─── 주가 차트 탭 병렬 그리드 ─── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 640px) {
+      .chart-grid { grid-template-columns: 1fr; }
+    }
     .investor-na {
       text-align: center;
       padding: 32px 20px;
@@ -420,19 +431,21 @@
 
   <!-- 탭 4: 주가 차트 -->
   <div id="tab-chart" class="tab-panel">
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">주가 추이 (최근 7거래일 · 캔들스틱)</div>
+        <div style="padding:16px 20px;">
+          <canvas id="price-chart" height="160"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">거래량 추이 (최근 7거래일)</div>
+        <div style="padding:16px 20px;">
+          <canvas id="volume-chart" height="160"></canvas>
+        </div>
+      </div>
+    </div>
     <div class="card">
-      <div class="card-title">주가 추이 (최근 7거래일 · 캔들스틱)</div>
-      <div style="padding:16px 20px;">
-        <canvas id="price-chart" height="160"></canvas>
-      </div>
-    </div>
-    <div class="card" style="margin-top:12px;">
-      <div class="card-title">거래량 추이 (최근 7거래일)</div>
-      <div style="padding:16px 20px;">
-        <canvas id="volume-chart" height="100"></canvas>
-      </div>
-    </div>
-    <div class="card" style="margin-top:12px;">
       <div class="card-title">전체 주가 추이</div>
       <div style="padding:12px 20px 16px;">
         <img id="naver-full-chart"
