@@ -288,6 +288,9 @@
     }
     .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
     .tab-btn:hover:not(.active) { color: #374151; }
+    .tab-btn.admin { margin-left: auto; color: #9ca3af; font-size: 0.78rem; }
+    .tab-btn.admin:hover:not(.active) { color: #6b7280; }
+    .tab-btn.admin.active { color: #7c3aed; border-bottom-color: #7c3aed; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
@@ -376,7 +379,7 @@
     <button class="tab-btn" data-tab="info">종목 정보</button>
     <button class="tab-btn" data-tab="investor">투자자 동향</button>
     <button class="tab-btn" data-tab="chart">주가 차트</button>
-    <button class="tab-btn" data-tab="quality">데이터 검증</button>
+    <button class="tab-btn admin" data-tab="quality">데이터 검증</button>
   </nav>
 
   <!-- 탭 1: 시세 현황 -->
