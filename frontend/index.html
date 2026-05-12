@@ -305,6 +305,20 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
+    /* ─── 데이터 출처 탭 ─── */
+    .source-table td, .source-table th { text-align: left; }
+    .source-badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .source-badge.dart { background: #fef3c7; color: #92400e; }
+    .source-badge.naver { background: #dcfce7; color: #166534; }
+
     /* ─── 데이터 검증 탭 ─── */
     .qc-summary {
       display: flex;
@@ -390,6 +404,7 @@
     <button class="tab-btn" data-tab="info">종목 정보</button>
     <button class="tab-btn" data-tab="investor">투자자 동향</button>
     <button class="tab-btn" data-tab="chart">주가 차트</button>
+    <button class="tab-btn admin" data-tab="source">데이터 출처</button>
     <button class="tab-btn admin" data-tab="quality">데이터 검증</button>
   </nav>
 
@@ -422,6 +437,99 @@
   <!-- 탭 3: 투자자 동향 -->
   <div id="tab-investor" class="tab-panel">
     <div id="investor-wrap"></div>
+  </div>
+
+  <!-- 탭 6: 데이터 출처 -->
+  <div id="tab-source" class="tab-panel">
+    <div class="card">
+      <div class="card-title">데이터 출처</div>
+      <div class="table-wrap">
+        <table class="source-table">
+          <thead>
+            <tr>
+              <th>데이터 항목</th>
+              <th>제공처</th>
+              <th>수집 방법</th>
+              <th>비고</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>종가·시가·고가·저가</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td>영업일 기준 일 1회 수집</td>
+            </tr>
+            <tr>
+              <td>거래량·거래대금</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>최근 7거래일 OHLCV</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>52주 최고·최저가</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>시가총액·상장주식수</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>외국인 소진율</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>투자자별 순매수 동향</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td>기관·개인·외국인</td>
+            </tr>
+            <tr>
+              <td>기관 세부 순매수</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td>금융투자·보험·투신·연기금 등</td>
+            </tr>
+            <tr>
+              <td>재무지표 (EPS·BPS·PER·PBR)</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>당기순이익 (TTM)</td>
+              <td>금융감독원 (DART)</td>
+              <td><span class="source-badge dart">DART API</span></td>
+              <td class="flat" style="font-style:italic">미연동</td>
+            </tr>
+            <tr>
+              <td>KOSPI·KOSDAQ 지수</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>전체 주가 차트 이미지</td>
+              <td>네이버 금융</td>
+              <td><span class="source-badge naver">이미지 URL</span></td>
+              <td>ssl.pstatic.net</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- 탭 5: 데이터 검증 -->
