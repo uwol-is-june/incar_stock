@@ -389,13 +389,6 @@
       color: #94a3b8;
       margin-top: -8px;
     }
-    .chart-main-grid { display: grid; grid-template-columns: 1fr 280px; gap: 12px; align-items: start; }
-    @media (max-width: 860px) { .chart-main-grid { grid-template-columns: 1fr; } }
-    .chart-side-card { border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; overflow: hidden; }
-    .side-tab-nav { display: flex; border-bottom: 1px solid #e5e7eb; }
-    .side-tab-btn { flex: 1; padding: 10px 12px; font-size: 0.82rem; font-weight: 600; color: #6b7280; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; }
-    .side-tab-btn.active { color: #1e3a5f; border-bottom-color: #1e3a5f; }
-    .side-tab-body { padding: 14px; }
     .company-summary { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 12px; }
     .company-summary-item { font-size: 0.85rem; color: #374151; }
     .company-summary-item .cs-label { color: #6b7280; margin-right: 4px; }
@@ -440,6 +433,7 @@
     <button class="tab-btn" data-tab="info">종목 정보</button>
     <button class="tab-btn" data-tab="investor">투자자 동향</button>
     <button class="tab-btn" data-tab="chart">주가 차트</button>
+    <button class="tab-btn" data-tab="company">기업 개요</button>
     <div class="admin-tabs">
       <button class="tab-btn admin" data-tab="source">데이터 출처</button>
       <button class="tab-btn admin" data-tab="quality">데이터 검증</button>
@@ -469,7 +463,6 @@
 
   <!-- 탭 2: 종목 정보 -->
   <div id="tab-info" class="tab-panel">
-    <div id="company-info-wrap"></div>
     <div id="info-grid"></div>
   </div>
 
@@ -662,42 +655,33 @@
 
   <!-- 탭 4: 주가 차트 -->
   <div id="tab-chart" class="tab-panel">
-    <div class="chart-main-grid">
-      <div class="chart-left">
-        <div class="chart-grid">
-          <div class="card">
-            <div class="card-title">주가 추이 (최근 7거래일 · 캔들스틱)</div>
-            <div style="padding:16px 20px;">
-              <canvas id="price-chart" height="160"></canvas>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">거래량 추이 (최근 7거래일)</div>
-            <div style="padding:16px 20px;">
-              <canvas id="volume-chart" height="160"></canvas>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">전체 주가 추이</div>
-          <div style="padding:12px 20px 16px;">
-            <img id="naver-full-chart"
-                 alt="전체 주가 추이"
-                 style="width:100%; border-radius:4px; display:block;" />
-          </div>
+    <div class="chart-grid">
+      <div class="card">
+        <div class="card-title">주가 추이 (최근 7거래일 · 캔들스틱)</div>
+        <div style="padding:16px 20px;">
+          <canvas id="price-chart" height="160"></canvas>
         </div>
       </div>
-      <div class="chart-right">
-        <div class="chart-side-card">
-          <div class="side-tab-nav">
-            <button class="side-tab-btn active">기업 개요</button>
-          </div>
-          <div class="side-tab-body">
-            <div id="chart-company-wrap"></div>
-          </div>
+      <div class="card">
+        <div class="card-title">거래량 추이 (최근 7거래일)</div>
+        <div style="padding:16px 20px;">
+          <canvas id="volume-chart" height="160"></canvas>
         </div>
       </div>
     </div>
+    <div class="card">
+      <div class="card-title">전체 주가 추이</div>
+      <div style="padding:12px 20px 16px;">
+        <img id="naver-full-chart"
+             alt="전체 주가 추이"
+             style="width:100%; border-radius:4px; display:block;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭 5: 기업 개요 -->
+  <div id="tab-company" class="tab-panel">
+    <div id="company-info-wrap"></div>
   </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -821,27 +805,12 @@
   }
 
   function renderCompanyInfo(s) {
-    const info = s?.company_info;
-
-    // 종목 정보 탭 (카드 래퍼 포함)
     const wrap = document.getElementById('company-info-wrap');
-    if (wrap) {
-      if (!info || Object.keys(info).length === 0) { wrap.innerHTML = ''; }
-      else {
-        const { summaryHtml, historyHtml } = _buildCompanyInfoHtml(info);
-        wrap.innerHTML = `<div class="card"><div class="card-title">기업 개요</div><div class="company-summary">${summaryHtml}</div>${historyHtml}</div>`;
-      }
-    }
-
-    // 주가차트 탭 우측 사이드 패널 (카드 없이 내용만)
-    const sideWrap = document.getElementById('chart-company-wrap');
-    if (sideWrap) {
-      if (!info || Object.keys(info).length === 0) { sideWrap.innerHTML = ''; }
-      else {
-        const { summaryHtml, historyHtml } = _buildCompanyInfoHtml(info);
-        sideWrap.innerHTML = `<div class="company-summary">${summaryHtml}</div>${historyHtml}`;
-      }
-    }
+    if (!wrap) return;
+    const info = s?.company_info;
+    if (!info || Object.keys(info).length === 0) { wrap.innerHTML = ''; return; }
+    const { summaryHtml, historyHtml } = _buildCompanyInfoHtml(info);
+    wrap.innerHTML = `<div class="card"><div class="card-title">기업 개요</div><div class="company-summary">${summaryHtml}</div>${historyHtml}</div>`;
   }
 
   /* ── 탭2: 종목 정보 KPI ── */
