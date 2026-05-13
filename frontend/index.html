@@ -181,7 +181,7 @@
     /* ─── 투자자 동향 그리드 ─── */
     .investor-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-top: 12px;
     }
@@ -849,16 +849,16 @@
     ];
 
     wrap.innerHTML = `
-      <div class="investor-grid">
-        <div class="card">
-          <div class="card-title">최근 5거래일 순매수 동향 (주)</div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>기준일</th><th>종가</th><th>전일비</th><th>등락율</th><th>총 거래량</th><th>개인</th><th>기관</th><th>외국인</th></tr></thead>
-              <tbody>${trendRows}</tbody>
-            </table>
-          </div>
+      <div class="card">
+        <div class="card-title">최근 5거래일 순매수 동향 (주)</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>기준일</th><th>종가</th><th>전일비</th><th>등락율</th><th>총 거래량</th><th>개인</th><th>기관</th><th>외국인</th></tr></thead>
+            <tbody>${trendRows}</tbody>
+          </table>
         </div>
+      </div>
+      <div class="investor-grid">
         <div class="card">
           <div class="card-title">기관 세부 순매수 (주)</div>
           <div class="table-wrap">
@@ -873,24 +873,24 @@
             </table>
           </div>
         </div>
-      </div>
-      <div class="card" style="margin-top:12px">
-        <div class="card-title">최신 기준일 매수·매도 상세</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>구분</th><th>매수</th><th>매도</th><th>순매수</th></tr></thead>
-            <tbody>
-              ${detailRows.map(r => {
-                const c = r.net != null ? cls(r.net) : 'flat';
-                return `<tr>
-                  <td>${r.label}</td>
-                  <td>${fmtOk(r.buy)}</td>
-                  <td>${fmtOk(r.sell)}</td>
-                  <td class="${c}">${fmtOk(r.net, true)}</td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
+        <div class="card">
+          <div class="card-title">최신 기준일 매수·매도 상세</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>구분</th><th>매수</th><th>매도</th><th>순매수</th></tr></thead>
+              <tbody>
+                ${detailRows.map(r => {
+                  const c = r.net != null ? cls(r.net) : 'flat';
+                  return `<tr>
+                    <td>${r.label}</td>
+                    <td>${fmtOk(r.buy)}</td>
+                    <td>${fmtOk(r.sell)}</td>
+                    <td class="${c}">${fmtOk(r.net, true)}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>`;
   }
