@@ -795,9 +795,16 @@
   });
 
   /* ── 수동 업데이트 상태 렌더 ── */
-  function renderUpdateStatus() {
+  async function renderUpdateStatus() {
     const grid = document.getElementById('update-status-grid');
     const btn  = document.getElementById('btn-manual-collect');
+
+    let latestDate = null;
+    try {
+      const dates = await fetch('./reports/index.json', { cache: 'no-store' }).then(r => r.json());
+      latestDate = dates[0] ?? null;
+    } catch { /* 오프라인 등 실패 시 null 유지 */ }
+
     const kst  = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
     const today = kst.getFullYear() + '-'
       + String(kst.getMonth() + 1).padStart(2, '0') + '-'
@@ -805,7 +812,6 @@
     const dow  = kst.getDay();
     const hour = kst.getHours();
 
-    const latestDate  = window._latestReportDate ?? null;
     const alreadyDone = latestDate === today;
     const isWeekday   = dow >= 1 && dow <= 5;
     const isAfter16   = hour >= 16;
@@ -814,11 +820,11 @@
     if (alreadyDone)     { krxStatus = 'done';  krxSub = '오늘 수집 완료'; }
     else if (!isWeekday) { krxStatus = 'na';    krxSub = '비거래일'; }
     else if (!isAfter16) { krxStatus = 'wait';  krxSub = '장 마감 후(16:00 KST) 확정'; }
-    else                 { krxStatus = 'ready'; krxSub = '데이터 확정 시간대'; }
+    else                 { krxStatus = 'ready'; krxSub = '16:00 KST 이후 · 평일'; }
 
-    const dartOk = window._latestReport?.stocks?.['211050']?.net_income_ttm != null;
+    const dartOk     = window._latestReport?.stocks?.['211050']?.net_income_ttm != null;
     const dartStatus = dartOk ? 'ready' : 'na';
-    const dartSub    = dartOk ? '분기 재무 연동' : '미연동 (수집에 영향 없음)';
+    const dartSub    = dartOk ? '최근 분기 순이익 수집됨' : '미연동 (수집에 영향 없음)';
 
     const LABEL = { ready: '✅ 준비됨', wait: '⏳ 대기 중', done: '✔ 완료', na: '— 해당없음' };
     grid.innerHTML = `
