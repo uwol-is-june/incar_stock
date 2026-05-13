@@ -539,6 +539,27 @@
         </table>
       </div>
     </div>
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">TTM (Trailing Twelve Months) 계산 방식</div>
+      <p style="font-size:0.86rem;color:#374151;margin:0 0 12px">
+        DART 분기보고서는 Q1·Q2·Q3을 단독 분기값으로 제공하지만, Q4 단독 보고서는 없습니다.
+        이에 따라 Q4는 연간 누적값에서 9개월 누적값을 빼서 역산합니다.
+      </p>
+      <div class="table-wrap">
+        <table class="source-table">
+          <thead>
+            <tr><th>수집 항목</th><th>기간</th><th>방식</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Q1 당기순이익</td><td>1월 1일 ~ 3월 31일 (약 90일)</td><td>DART 분기보고서 단독값</td></tr>
+            <tr><td>Q2 당기순이익</td><td>4월 1일 ~ 6월 30일 (약 91일)</td><td>DART 분기보고서 단독값</td></tr>
+            <tr><td>Q3 당기순이익</td><td>7월 1일 ~ 9월 30일 (약 92일)</td><td>DART 분기보고서 단독값</td></tr>
+            <tr><td>Q4 당기순이익</td><td>10월 1일 ~ 12월 31일</td><td>연간 누적 − 9개월(Jan~Sep) 누적으로 역산</td></tr>
+            <tr style="font-weight:600"><td>TTM 합계</td><td>최근 4분기</td><td>Q1 + Q2 + Q3 + Q4</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- 탭 5: 데이터 검증 -->
