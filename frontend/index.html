@@ -304,7 +304,14 @@
     .tab-btn.admin:hover:not(.active) { color: #6b7280; }
     .tab-btn.admin.active { color: #7c3aed; border-bottom-color: #7c3aed; }
     .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    .tab-panel.active {
+      display: block;
+      animation: tabFadeIn 0.25s ease forwards;
+    }
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     /* ─── 데이터 출처 탭 ─── */
     .source-table td, .source-table th { text-align: left; }
@@ -379,10 +386,26 @@
       animation: spin 0.9s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    header          { animation: fadeInDown 0.35s ease both; animation-delay: 0ms; }
+    .index-strip    { animation: fadeInDown 0.35s ease both; animation-delay: 80ms; }
+    #price-banner   { animation: fadeInDown 0.35s ease both; animation-delay: 160ms; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
     .collecting-title {
       font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.3px;
+      animation: pulse 1.6s ease-in-out infinite;
     }
     .collecting-sub {
       font-size: 0.85rem;
@@ -410,7 +433,7 @@
 
 <header>
   <div class="header-left">
-    <h1>InCar Stock Monitor</h1>
+    <h1>Incar Stock Monitor</h1>
     <div class="header-ticker">인카금융서비스 · 211050</div>
   </div>
   <div class="header-right">
@@ -750,8 +773,8 @@
       { label: s.prev_date ? `전일 종가 (${s.prev_date.slice(5).replace('-','/')})` : '전일 종가',
         value: fmtW(s.prev_close), na: s.prev_close == null },
     ];
-    function cardHtml(c) {
-      return `<div class="metric-card">
+    function cardHtml(c, i) {
+      return `<div class="metric-card" style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
         <div class="metric-label">${c.label}</div>
         <div class="metric-value${c.na ? ' na' : ''}${c.cls ? ' ' + c.cls : ''}">${c.value}</div>
         ${c.note ? `<div class="metric-note">${c.note}</div>` : ''}
@@ -842,16 +865,17 @@
       { label: 'PBR', value: s.pbr != null ? s.pbr + '배' : '—', na: s.pbr == null },
     ];
 
-    function cardHtml(c) {
+    function cardHtml(c, i) {
+      const delay = `style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms"`;
       if (c._custom === 'rank') return `
-        <div class="metric-card">
+        <div class="metric-card" ${delay}>
           <div class="metric-label">시총 순위</div>
           <div class="metric-value${s.cap_rank == null ? ' na' : ''}">
             ${s.cap_rank != null ? `${s.cap_rank.toLocaleString('ko-KR')}위 <span class="rank-badge">KOSDAQ</span>` : '—'}
           </div>
         </div>`;
       if (c._custom === 'foreign') return `
-        <div class="metric-card">
+        <div class="metric-card" ${delay}>
           <div class="metric-label">외국인 소진율</div>
           <div class="metric-value${s.exhaustion_rate == null ? ' na' : ''}">
             ${s.exhaustion_rate != null ? s.exhaustion_rate + '%' : '—'}
@@ -860,7 +884,7 @@
             ? `<div class="progress-wrap"><div class="progress-bar" style="width:${Math.min(s.exhaustion_rate, 100)}%"></div></div>`
             : ''}
         </div>`;
-      return `<div class="metric-card">
+      return `<div class="metric-card" ${delay}>
         <div class="metric-label">${c.label}</div>
         <div class="metric-value${c.na ? ' na' : ''}">${c.value}</div>
         ${c.note ? `<div class="metric-note">${c.note}</div>` : ''}
@@ -935,9 +959,9 @@
       tbody.innerHTML = '<tr><td colspan="8" class="empty-state">데이터가 없습니다.</td></tr>';
       return;
     }
-    tbody.innerHTML = rows.map(s => {
+    tbody.innerHTML = rows.map((s, i) => {
       const c = cls(s.change_pct);
-      return `<tr>
+      return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
         <td>${s.date}</td>
         <td>${fmt(s.open)}</td>
         <td class="${cls(s.high - s.close)}">${fmt(s.high)}</td>
@@ -970,14 +994,14 @@
       return;
     }
 
-    const trendRows = recent5.map(r => {
+    const trendRows = recent5.map((r, i) => {
       const s = r.stocks?.[TICKER];
       if (!s) return '';
       const ohlcv = s.ohlcv_7d?.[0];
       const chgPctStr = ohlcv?.change_pct != null
         ? (ohlcv.change_pct > 0 ? '+' : '') + ohlcv.change_pct.toFixed(2) + '%'
         : '—';
-      return `<tr>
+      return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
         <td>${s.data_date}</td>
         <td>${fmtW(ohlcv?.close)}</td>
         <td class="${ohlcv?.change != null ? cls(ohlcv.change) : 'flat'}">${ohlcv?.change != null ? signFmt(ohlcv.change) + '원' : '—'}</td>
@@ -1022,9 +1046,9 @@
             <table>
               <thead><tr><th>구분</th><th>순매수</th></tr></thead>
               <tbody>
-                ${instDetails.map(d => {
+                ${instDetails.map((d, i) => {
                   const c = d.net != null ? cls(d.net) : 'flat';
-                  return `<tr><td>${d.label}</td><td class="${c}">${fmtOk(d.net, true)}</td></tr>`;
+                  return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms"><td>${d.label}</td><td class="${c}">${fmtOk(d.net, true)}</td></tr>`;
                 }).join('')}
               </tbody>
             </table>
@@ -1036,9 +1060,9 @@
             <table>
               <thead><tr><th>구분</th><th>매수</th><th>매도</th><th>순매수</th></tr></thead>
               <tbody>
-                ${detailRows.map(r => {
+                ${detailRows.map((r, i) => {
                   const c = r.net != null ? cls(r.net) : 'flat';
-                  return `<tr>
+                  return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
                     <td>${r.label}</td>
                     <td>${fmtOk(r.buy)}</td>
                     <td>${fmtOk(r.sell)}</td>
@@ -1089,6 +1113,7 @@
       },
       options: {
         responsive: true,
+        animation: { duration: 600, easing: 'easeOutQuart' },
         plugins: { legend: { display: false } },
         scales: {
           x: {
@@ -1118,6 +1143,7 @@
       },
       options: {
         responsive: true,
+        animation: { duration: 600, easing: 'easeOutQuart' },
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { maxRotation: 0 } },
