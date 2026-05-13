@@ -515,7 +515,7 @@
               <td>당기순이익 (TTM)</td>
               <td>금융감독원 (DART)</td>
               <td><span class="source-badge dart">DART API</span></td>
-              <td class="flat" style="font-style:italic">미연동</td>
+              <td>최근 4분기 합산</td>
             </tr>
             <tr>
               <td>자본총액</td>
@@ -816,10 +816,18 @@
     const trendRows = recent5.map(r => {
       const s = r.stocks?.[TICKER];
       if (!s) return '';
+      const ohlcv = s.ohlcv_7d?.[0];
+      const chgPctStr = ohlcv?.change_pct != null
+        ? (ohlcv.change_pct > 0 ? '+' : '') + ohlcv.change_pct.toFixed(2) + '%'
+        : '—';
       return `<tr>
         <td>${s.data_date}</td>
-        <td class="${s.inst_net    != null ? cls(s.inst_net)    : 'flat'}">${fmtOk(s.inst_net,    true)}</td>
+        <td>${fmtW(ohlcv?.close)}</td>
+        <td class="${ohlcv?.change != null ? cls(ohlcv.change) : 'flat'}">${ohlcv?.change != null ? signFmt(ohlcv.change) + '원' : '—'}</td>
+        <td class="${ohlcv?.change_pct != null ? cls(ohlcv.change_pct) : 'flat'}">${chgPctStr}</td>
+        <td>${fmtVol(ohlcv?.volume)}</td>
         <td class="${s.indiv_net   != null ? cls(s.indiv_net)   : 'flat'}">${fmtOk(s.indiv_net,   true)}</td>
+        <td class="${s.inst_net    != null ? cls(s.inst_net)    : 'flat'}">${fmtOk(s.inst_net,    true)}</td>
         <td class="${s.foreign_net != null ? cls(s.foreign_net) : 'flat'}">${fmtOk(s.foreign_net, true)}</td>
       </tr>`;
     }).join('');
@@ -846,7 +854,7 @@
           <div class="card-title">최근 5거래일 순매수 동향 (주)</div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>기준일</th><th>기관</th><th>개인</th><th>외국인</th></tr></thead>
+              <thead><tr><th>기준일</th><th>종가</th><th>전일비</th><th>등락율</th><th>총 거래량</th><th>개인</th><th>기관</th><th>외국인</th></tr></thead>
               <tbody>${trendRows}</tbody>
             </table>
           </div>
