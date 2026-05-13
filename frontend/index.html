@@ -303,6 +303,33 @@
     .admin-tabs { margin-left: auto; display: flex; }
     .tab-btn.admin:hover:not(.active) { color: #6b7280; }
     .tab-btn.admin.active { color: #7c3aed; border-bottom-color: #7c3aed; }
+    /* ─── 관리자 패널 세부 탭 ─── */
+    .admin-panel-nav { display: flex; gap: 0; border-bottom: 1px solid #e4e7ec; margin-bottom: 16px; }
+    .admin-sub-btn {
+      padding: 7px 16px; border: none; background: none; cursor: pointer;
+      font-size: 0.82rem; font-weight: 600; color: #9ca3af;
+      border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s;
+    }
+    .admin-sub-btn.active { color: #7c3aed; border-bottom-color: #7c3aed; }
+    .admin-sub-btn:hover:not(.active) { color: #6b7280; }
+    .admin-sub-panel { display: none; }
+    .admin-sub-panel.active { display: block; animation: tabFadeIn 0.25s ease forwards; }
+    /* ─── 수동 업데이트 패널 ─── */
+    .update-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 20px 20px; }
+    .update-status-card { background: #f8fafc; border: 1px solid #e4e7ec; border-radius: 10px; padding: 14px 16px; }
+    .update-status-label { font-size: 0.72rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .update-status-value { font-size: 0.95rem; font-weight: 600; }
+    .update-status-sub { font-size: 0.75rem; color: #6b7280; margin-top: 3px; }
+    .status-ready { color: #16a34a; }
+    .status-wait  { color: #d97706; }
+    .status-done  { color: #2563eb; }
+    .status-na    { color: #9ca3af; }
+    .btn-trigger {
+      padding: 9px 20px; border-radius: 7px; border: none; cursor: pointer;
+      font-size: 0.88rem; font-weight: 700; background: #7c3aed; color: #fff; transition: opacity .15s;
+    }
+    .btn-trigger:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+    .btn-trigger:not(:disabled):hover { opacity: 0.85; }
     .tab-panel { display: none; }
     .tab-panel.active {
       display: block;
@@ -459,8 +486,7 @@
     <button class="tab-btn" data-tab="chart">주가 차트</button>
     <button class="tab-btn" data-tab="company">기업 개요</button>
     <div class="admin-tabs">
-      <button class="tab-btn admin" data-tab="source">데이터 출처</button>
-      <button class="tab-btn admin" data-tab="quality">데이터 검증</button>
+      <button class="tab-btn admin" data-tab="admin">관리자</button>
     </div>
   </nav>
 
@@ -495,8 +521,16 @@
     <div id="investor-wrap"></div>
   </div>
 
-  <!-- 탭 6: 데이터 출처 -->
-  <div id="tab-source" class="tab-panel">
+  <!-- 관리자 탭 (데이터 출처 · 데이터 검증 · 수동 업데이트) -->
+  <div id="tab-admin" class="tab-panel">
+    <div class="admin-panel-nav">
+      <button class="admin-sub-btn active" data-sub="source">데이터 출처</button>
+      <button class="admin-sub-btn" data-sub="quality">데이터 검증</button>
+      <button class="admin-sub-btn" data-sub="update">수동 업데이트</button>
+    </div>
+
+    <!-- 세부 탭 1: 데이터 출처 -->
+    <div class="admin-sub-panel active" id="sub-source">
     <div class="card">
       <div class="card-title">데이터 출처</div>
       <div class="table-wrap">
@@ -672,9 +706,28 @@
     </details>
   </div>
 
-  <!-- 탭 5: 데이터 검증 -->
-  <div id="tab-quality" class="tab-panel">
-    <div id="quality-wrap"></div>
+    <!-- 세부 탭 2: 데이터 검증 -->
+    <div class="admin-sub-panel" id="sub-quality">
+      <div id="quality-wrap"></div>
+    </div>
+
+    <!-- 세부 탭 3: 수동 업데이트 -->
+    <div class="admin-sub-panel" id="sub-update">
+      <div class="card">
+        <div class="card-title">데이터 소스 상태</div>
+        <div class="update-status-grid" id="update-status-grid"></div>
+      </div>
+      <div class="card" style="margin-top:10px;">
+        <div class="card-title">수동 수집 실행</div>
+        <p style="font-size:0.85rem; color:#6b7280; margin:0 20px 14px;">
+          pykrx 데이터가 확정(16:00 KST 이후 평일)된 경우에만 실행하세요. 수분 후 자동으로 갱신됩니다.
+        </p>
+        <div style="padding:0 20px 20px;">
+          <button id="btn-manual-collect" class="btn-trigger" disabled>지금 수집 실행</button>
+          <div id="trigger-result" style="margin-top:10px; font-size:0.85rem;"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 탭 4: 주가 차트 -->
@@ -728,6 +781,82 @@
       btn.classList.add('active');
       document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     });
+  });
+
+  /* ── 관리자 패널 세부 탭 ── */
+  document.querySelectorAll('.admin-sub-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.admin-sub-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.admin-sub-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('sub-' + btn.dataset.sub).classList.add('active');
+      if (btn.dataset.sub === 'update') renderUpdateStatus();
+    });
+  });
+
+  /* ── 수동 업데이트 상태 렌더 ── */
+  function renderUpdateStatus() {
+    const grid = document.getElementById('update-status-grid');
+    const btn  = document.getElementById('btn-manual-collect');
+    const kst  = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+    const today = kst.getFullYear() + '-'
+      + String(kst.getMonth() + 1).padStart(2, '0') + '-'
+      + String(kst.getDate()).padStart(2, '0');
+    const dow  = kst.getDay();
+    const hour = kst.getHours();
+
+    const latestDate  = window._latestReportDate ?? null;
+    const alreadyDone = latestDate === today;
+    const isWeekday   = dow >= 1 && dow <= 5;
+    const isAfter16   = hour >= 16;
+
+    let krxStatus, krxSub;
+    if (alreadyDone)     { krxStatus = 'done';  krxSub = '오늘 수집 완료'; }
+    else if (!isWeekday) { krxStatus = 'na';    krxSub = '비거래일'; }
+    else if (!isAfter16) { krxStatus = 'wait';  krxSub = '장 마감 후(16:00 KST) 확정'; }
+    else                 { krxStatus = 'ready'; krxSub = '데이터 확정 시간대'; }
+
+    const dartOk = window._latestReport?.stocks?.['211050']?.net_income_ttm != null;
+    const dartStatus = dartOk ? 'ready' : 'na';
+    const dartSub    = dartOk ? '분기 재무 연동' : '미연동 (수집에 영향 없음)';
+
+    const LABEL = { ready: '✅ 준비됨', wait: '⏳ 대기 중', done: '✔ 완료', na: '— 해당없음' };
+    grid.innerHTML = `
+      <div class="update-status-card">
+        <div class="update-status-label">pykrx (KRX)</div>
+        <div class="update-status-value status-${krxStatus}">${LABEL[krxStatus]}</div>
+        <div class="update-status-sub">${krxSub}</div>
+      </div>
+      <div class="update-status-card">
+        <div class="update-status-label">DART</div>
+        <div class="update-status-value status-${dartStatus}">${LABEL[dartStatus]}</div>
+        <div class="update-status-sub">${dartSub}</div>
+      </div>`;
+
+    btn.disabled = !(isWeekday && isAfter16 && !alreadyDone);
+  }
+
+  document.getElementById('btn-manual-collect').addEventListener('click', async () => {
+    const btn    = document.getElementById('btn-manual-collect');
+    const result = document.getElementById('trigger-result');
+    btn.disabled = true;
+    btn.textContent = '요청 중...';
+    result.textContent = '';
+    try {
+      const res = await fetch('/api/trigger-collect', { method: 'POST' });
+      if (res.ok) {
+        result.innerHTML = '<span style="color:#16a34a">✅ 수집 요청 완료. 수분 후 자동 갱신됩니다.</span>';
+        btn.textContent = '요청 완료';
+      } else {
+        result.innerHTML = '<span style="color:#dc2626">❌ 요청 실패. GitHub 토큰을 확인하세요.</span>';
+        btn.disabled = false;
+        btn.textContent = '지금 수집 실행';
+      }
+    } catch {
+      result.innerHTML = '<span style="color:#dc2626">❌ 네트워크 오류</span>';
+      btn.disabled = false;
+      btn.textContent = '지금 수집 실행';
+    }
   });
 
   /* ── 숫자 포맷 ── */
@@ -1423,6 +1552,8 @@
         dates.map(d => fetch(`./reports/${d}.json`, { cache: 'no-store' }).then(r => r.json()))
       );
       allReports.sort((a, b) => b.date.localeCompare(a.date));
+      window._latestReportDate = allReports[0]?.date ?? null;
+      window._latestReport     = allReports[0] ?? null;
 
       const selected = allReports.find(r => r.date === selectedDate) || allReports[0];
       renderFor(selected, allReports);
