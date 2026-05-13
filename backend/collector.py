@@ -131,6 +131,59 @@ def _fetch_market_cap_ranking(ticker: str, date_ymd: str) -> "int | None":
         return None
 
 
+def _fetch_company_info(ticker: str) -> dict:
+    """pyKRX get_stock_major_changes로 기업 주요변경 이력 및 현재 상태 조회."""
+    try:
+        df = stock.get_stock_major_changes(ticker)
+        if df is None or df.empty:
+            return {}
+
+        def latest_str(col):
+            vals = [str(v) for v in df[col] if str(v).strip() != "-"]
+            return vals[-1] if vals else None
+
+        def latest_int(col):
+            vals = [int(v) for v in df[col] if v != 0]
+            return vals[-1] if vals else None
+
+        history = []
+        for date_idx, row in df.iterrows():
+            changes = []
+            for before_col, after_col, label in [
+                ("상호변경전", "상호변경후", "상호"),
+                ("업종변경전", "업종변경후", "업종"),
+                ("대표이사변경전", "대표이사변경후", "대표이사"),
+            ]:
+                b = str(row[before_col]).strip()
+                a = str(row[after_col]).strip()
+                if b != "-" or a != "-":
+                    changes.append({
+                        "구분": label,
+                        "변경전": b if b != "-" else None,
+                        "변경후": a if a != "-" else None,
+                    })
+            bv, av = int(row["액면변경전"]), int(row["액면변경후"])
+            if bv != 0 or av != 0:
+                changes.append({
+                    "구분": "액면가",
+                    "변경전": bv if bv != 0 else None,
+                    "변경후": av if av != 0 else None,
+                })
+            if changes:
+                history.append({"date": str(date_idx.date()), "changes": changes})
+
+        return {
+            "상호":    latest_str("상호변경후"),
+            "업종":    latest_str("업종변경후"),
+            "액면가":  latest_int("액면변경후"),
+            "대표이사": latest_str("대표이사변경후"),
+            "변경이력": history,
+        }
+    except Exception as e:
+        logger.warning("company_info fetch failed for %s: %s", ticker, e)
+        return {}
+
+
 def _investor_val(df, row_key: str, col_key: str):
     """df.loc[row_key, col_key] 안전 추출."""
     try:
@@ -382,10 +435,11 @@ def collect() -> dict[str, dict]:
         dart_equity     = dart_result["equity"]
         _ttm_vals = [q["net_income"] for q in dart_financials if q.get("net_income") is not None]
         net_income_ttm = sum(_ttm_vals) if len(_ttm_vals) == 4 else None
-        df_fund    = _fetch_fundamental(ticker)
-        df_cap     = _fetch_market_cap(ticker)
-        df_foreign = _fetch_foreign(ticker)
-        df_inv     = _fetch_investor_trading(ticker, data_date_ymd)
+        df_fund      = _fetch_fundamental(ticker)
+        df_cap       = _fetch_market_cap(ticker)
+        df_foreign   = _fetch_foreign(ticker)
+        df_inv       = _fetch_investor_trading(ticker, data_date_ymd)
+        company_info = _fetch_company_info(ticker)
 
         # KOSPI/KOSDAQ 지수 (5일치 — 전일 대비 변동 계산용)
         s5, e5 = _date_range(5)
@@ -452,6 +506,8 @@ def collect() -> dict[str, dict]:
             # DART 분기 재무 (TASK-022 TTM)
             "dart_financials": dart_financials,
             "net_income_ttm":  net_income_ttm,
+            # 기업 주요변경이력 (TASK-002)
+            "company_info": company_info,
         }
 
     return result
