@@ -389,12 +389,13 @@
       color: #94a3b8;
       margin-top: -8px;
     }
-    .company-summary { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 12px; }
-    .company-summary-item { font-size: 0.85rem; color: #374151; }
-    .company-summary-item .cs-label { color: #6b7280; margin-right: 4px; }
+    .company-info-grid { display: grid; grid-template-columns: 72px 1fr; gap: 10px 12px; margin-bottom: 20px; align-items: baseline; }
+    .ci-label { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
+    .ci-value { font-size: 0.88rem; color: #111827; word-break: keep-all; }
+    .company-history-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #9ca3af; margin-bottom: 8px; }
     .company-history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .company-history-table th { background: #f8fafc; color: #6b7280; font-weight: 600; padding: 6px 10px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-    .company-history-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .company-history-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; text-align: left; }
     .company-history-table tr:last-child td { border-bottom: none; }
     .ch-arrow { color: #9ca3af; margin: 0 4px; }
   </style>
@@ -777,7 +778,7 @@
     ];
     const summaryHtml = summaryFields
       .filter(([, v]) => v != null)
-      .map(([k, v]) => `<span class="company-summary-item"><span class="cs-label">${k}</span>${v}</span>`)
+      .map(([k, v]) => `<div class="ci-label">${k}</div><div class="ci-value">${v}</div>`)
       .join('');
 
     const history = info['변경이력'] ?? [];
@@ -791,15 +792,13 @@
         </tr>`)
       ).join('');
       historyHtml = `
-        <details style="margin-top:12px">
-          <summary style="cursor:pointer;font-size:0.8rem;color:#6b7280;user-select:none">주요 변경 이력 (${history.length}건)</summary>
-          <div class="table-wrap" style="margin-top:8px">
-            <table class="company-history-table">
-              <thead><tr><th>날짜</th><th>구분</th><th>변경 내용</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        </details>`;
+        <div class="company-history-title">주요 변경 이력</div>
+        <div class="table-wrap">
+          <table class="company-history-table">
+            <thead><tr><th>날짜</th><th>구분</th><th>변경 내용</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
     }
     return { summaryHtml, historyHtml };
   }
@@ -810,7 +809,7 @@
     const info = s?.company_info;
     if (!info || Object.keys(info).length === 0) { wrap.innerHTML = ''; return; }
     const { summaryHtml, historyHtml } = _buildCompanyInfoHtml(info);
-    wrap.innerHTML = `<div class="card"><div class="card-title">기업 개요</div><div class="company-summary">${summaryHtml}</div>${historyHtml}</div>`;
+    wrap.innerHTML = `<div class="card"><div class="card-title">기업 개요</div><div class="company-info-grid">${summaryHtml}</div>${historyHtml}</div>`;
   }
 
   /* ── 탭2: 종목 정보 KPI ── */
