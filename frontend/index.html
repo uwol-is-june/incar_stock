@@ -473,6 +473,7 @@
               <th>데이터 항목</th>
               <th>제공처</th>
               <th>수집 방법</th>
+              <th>데이터 기준</th>
               <th>비고</th>
             </tr>
           </thead>
@@ -481,78 +482,91 @@
               <td>종가·시가·고가·저가</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>당일 장마감 확정값</td>
               <td>영업일 기준 일 1회 수집</td>
             </tr>
             <tr>
               <td>거래량·거래대금</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>당일 장마감 확정값</td>
               <td></td>
             </tr>
             <tr>
               <td>최근 7거래일 OHLCV</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>수집 기준일 포함 직전 7거래일</td>
               <td></td>
             </tr>
             <tr>
               <td>52주 최고·최저가</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>수집 기준일 기준 최근 365일</td>
               <td></td>
             </tr>
             <tr>
               <td>시가총액·상장주식수</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>당일 장마감 확정값</td>
               <td></td>
             </tr>
             <tr>
               <td>외국인 소진율</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>KRX 최신 공시 기준</td>
               <td></td>
             </tr>
             <tr>
               <td>투자자별 순매수 동향</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>당일 장마감 확정값</td>
               <td>기관·개인·외국인</td>
             </tr>
             <tr>
               <td>기관 세부 순매수</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>당일 장마감 확정값</td>
               <td>금융투자·보험·투신·연기금 등</td>
             </tr>
             <tr>
               <td>재무지표 (EPS·BPS·PER·PBR)</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>KRX 최신 공시 기준 (분기 단위)</td>
               <td></td>
             </tr>
             <tr>
               <td>당기순이익 (TTM)</td>
               <td>금융감독원 (DART)</td>
               <td><span class="source-badge dart">DART API</span></td>
+              <td>DART 최근 공시 분기보고서 기준</td>
               <td>최근 4분기 합산</td>
             </tr>
             <tr>
               <td>자본총액</td>
               <td>금융감독원 (DART)</td>
               <td><span class="source-badge dart">DART API</span></td>
+              <td>DART 최근 공시 재무상태표 기준</td>
               <td>재무상태표 자본총계; 미수집 시 BPS × 상장주식수</td>
             </tr>
             <tr>
               <td>KOSPI·KOSDAQ 지수</td>
               <td>한국거래소 (KRX)</td>
               <td><span class="source-badge">pyKRX</span></td>
+              <td>당일 장마감 확정값</td>
               <td></td>
             </tr>
             <tr>
               <td>전체 주가 차트 이미지</td>
               <td>네이버 금융</td>
               <td><span class="source-badge naver">이미지 URL</span></td>
+              <td>실시간</td>
               <td>ssl.pstatic.net</td>
             </tr>
           </tbody>
@@ -560,7 +574,7 @@
       </div>
     </div>
     <details class="card ttm-toggle" style="margin-top:12px">
-      <summary class="card-title">TTM (Trailing Twelve Months) 계산 방식</summary>
+      <summary class="card-title">당기순이익 (TTM – Trailing Twelve Months) 계산방식</summary>
       <div class="ttm-body">
         <p style="font-size:0.86rem;color:#374151;margin:0 0 12px">
           DART 분기보고서는 Q1·Q2·Q3을 단독 분기값으로 제공하지만, Q4 단독 보고서는 없습니다.
@@ -577,6 +591,47 @@
               <tr><td>Q3 당기순이익</td><td>7월 1일 ~ 9월 30일 (약 92일)</td><td>DART 분기보고서 단독값</td></tr>
               <tr><td>Q4 당기순이익</td><td>10월 1일 ~ 12월 31일</td><td>연간 누적 − 9개월(Jan~Sep) 누적으로 역산</td></tr>
               <tr style="font-weight:600"><td>TTM 합계</td><td>최근 4분기</td><td>Q1 + Q2 + Q3 + Q4</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+    <details class="card ttm-toggle" style="margin-top:12px">
+      <summary class="card-title">52주 최고·최저가 산출 방식</summary>
+      <div class="ttm-body">
+        <p style="font-size:0.86rem;color:#374151;margin:0 0 12px">
+          pyKRX로 수집한 최근 365일 일별 OHLCV(시가·고가·저가·종가·거래량) 데이터에서
+          전체 기간의 고가(High) 최댓값과 저가(Low) 최솟값을 직접 계산합니다.
+        </p>
+        <div class="table-wrap">
+          <table class="source-table">
+            <thead>
+              <tr><th>항목</th><th>기준 기간</th><th>계산 방식</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>52주 최고가</td><td>최근 365일</td><td>일별 고가(High) 중 최댓값</td></tr>
+              <tr><td>52주 최저가</td><td>최근 365일</td><td>일별 저가(Low) 중 최솟값</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+    <details class="card ttm-toggle" style="margin-top:12px">
+      <summary class="card-title">자본총액 산출 방식</summary>
+      <div class="ttm-body">
+        <p style="font-size:0.86rem;color:#374151;margin:0 0 12px">
+          DART API에서 재무상태표 자본총계를 우선 수집합니다.
+          DART 미연동(API 키 없음 또는 조회 실패) 시에는
+          KRX에서 제공하는 BPS(주당순자산)와 상장주식수를 곱하여 역산합니다.
+        </p>
+        <div class="table-wrap">
+          <table class="source-table">
+            <thead>
+              <tr><th>우선순위</th><th>조건</th><th>산출 방식</th><th>출처</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1순위</td><td>DART 연동 성공</td><td>재무상태표 자본총계 직접 수집</td><td>DART API</td></tr>
+              <tr style="font-weight:600"><td>2순위 (대체)</td><td>DART 미연동</td><td>BPS × 상장주식수</td><td>pyKRX</td></tr>
             </tbody>
           </table>
         </div>
