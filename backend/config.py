@@ -12,5 +12,5 @@ WATCHLIST = {
 }
 
 REPORT_DIR = BASE_DIR / "reports"
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 DART_API_KEY = os.getenv("DART_API_KEY", "")

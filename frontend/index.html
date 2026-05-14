@@ -623,6 +623,34 @@
     /* 섹션 헤더 — 화면에서는 숨김 */
     .print-section-header { display: none; }
 
+    /* ─── AI 분석 탭 ─── */
+    .ai-text {
+      font-size: 0.96rem;
+      line-height: 1.75;
+      color: #1a1a2e;
+      word-break: keep-all;
+    }
+    .ai-badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: #eef2ff;
+      color: #4338ca;
+      text-transform: none;
+      letter-spacing: 0;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    .ai-na {
+      text-align: center;
+      padding: 48px 20px;
+      color: #9ca3af;
+      font-size: 0.88rem;
+      font-style: italic;
+    }
+
     /* ─── 모바일 반응형 ─── */
     @media (max-width: 640px) {
       /* 관리자 탭 숨기기 */
@@ -733,6 +761,7 @@
     <button class="tab-btn" data-tab="investor">투자자 동향</button>
     <button class="tab-btn" data-tab="chart">주가 차트</button>
     <button class="tab-btn" data-tab="company">기업 개요</button>
+    <button class="tab-btn" data-tab="ai">AI 분석</button>
     <div class="admin-tabs">
       <button class="tab-btn admin" data-tab="admin">관리자</button>
     </div>
@@ -1012,6 +1041,11 @@
   <div id="tab-company" class="tab-panel">
     <div class="print-section-header">기업 개요</div>
     <div id="company-info-wrap"></div>
+  </div>
+
+  <!-- 탭 6: AI 분석 -->
+  <div id="tab-ai" class="tab-panel">
+    <div id="ai-wrap"></div>
   </div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -1775,6 +1809,40 @@
       </div>`;
   }
 
+  /* ── 탭6: AI 분석 렌더 ── */
+  function renderAI(report) {
+    const wrap = document.getElementById('ai-wrap');
+    if (!wrap) return;
+    const summary = report?.market_summary;
+    const comment = report?.stocks?.[TICKER]?.comment;
+
+    if (!summary && !comment) {
+      wrap.innerHTML = `<div class="card"><p class="ai-na">AI 분석 데이터가 없습니다.<br>수동 수집을 실행하면 Gemini AI 코멘트가 생성됩니다.</p></div>`;
+      return;
+    }
+
+    let html = '';
+    if (summary) {
+      html += `
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-title">시장 요약<span class="ai-badge">Gemini AI</span></div>
+          <div style="padding:16px 20px 20px;">
+            <p class="ai-text">${summary}</p>
+          </div>
+        </div>`;
+    }
+    if (comment) {
+      html += `
+        <div class="card">
+          <div class="card-title">종목 분석 — 인카금융서비스 (${TICKER})<span class="ai-badge">Gemini AI</span></div>
+          <div style="padding:16px 20px 20px;">
+            <p class="ai-text">${comment}</p>
+          </div>
+        </div>`;
+    }
+    wrap.innerHTML = html;
+  }
+
   /* ── 선택 날짜 기준 렌더링 ── */
   function renderFor(selected, allReports) {
     const stock = selected?.stocks?.[TICKER];
@@ -1788,6 +1856,7 @@
     renderInvestor(stock, allReports);
     renderChart(stock?.ohlcv_7d);
     renderQuality(selected);
+    renderAI(selected);
   }
 
   /* ── 전체 로드 ── */
