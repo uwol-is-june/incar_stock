@@ -563,22 +563,64 @@
       table  { white-space: normal; font-size: 0.75rem; }
       th, td { padding: 5px 8px; }
 
-      /* 그리드 1열 전환 */
+      /* 그리드: 투자자 1열, 차트 2열 유지 */
       .investor-grid { grid-template-columns: 1fr !important; }
-      .chart-grid    { grid-template-columns: 1fr !important; }
+      .chart-grid    { grid-template-columns: 1fr 1fr !important; }
 
       /* 차트 캔버스 크기 제한 */
       canvas { max-width: 100% !important; }
 
       /* 여백·폰트 최적화 */
-      .index-card         { padding: 10px 14px; }
       .price-banner       { padding: 10px 16px; }
-      .index-value        { font-size: 1rem !important; }
       .price-banner-close { font-size: 1.3rem !important; }
+
+      /* 지수 스트립 — 배경·색상 강제 출력 */
+      .index-strip {
+        display: flex !important;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .index-card {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background: #0d1b2a !important;
+        color: #fff !important;
+        border-radius: 8px;
+        padding: 10px 14px;
+        flex: 1;
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .index-name  { color: #8899aa !important; font-size: 0.65rem; font-weight: 700; }
+      .index-value { color: #fff !important; font-size: 1rem !important; font-weight: 700; }
+      .index-delta { font-size: 0.78rem !important; font-weight: 600; text-align: right; }
+      .index-delta.up   { color: #dc2626 !important; }
+      .index-delta.down { color: #2563eb !important; }
+      .index-pct   { color: #a0aec0 !important; font-size: 0.68rem; display: block; margin-top: 1px; }
+
+      /* 섹션 헤더 */
+      .print-section-header {
+        display: block !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background: #1e3a5f !important;
+        color: #fff !important;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        padding: 6px 14px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        page-break-after: avoid;
+      }
 
       /* 페이지 나누기 */
       .card { page-break-inside: avoid; }
     }
+
+    /* 섹션 헤더 — 화면에서는 숨김 */
+    .print-section-header { display: none; }
 
     /* ─── 모바일 반응형 ─── */
     @media (max-width: 640px) {
@@ -697,6 +739,7 @@
 
   <!-- 탭 1: 시세 현황 -->
   <div id="tab-price" class="tab-panel active">
+    <div class="print-section-header">시세 현황</div>
     <div id="price-grid"></div>
     <div class="card">
       <div class="card-title">최근 7일 현황</div>
@@ -718,11 +761,13 @@
 
   <!-- 탭 2: 종목 정보 -->
   <div id="tab-info" class="tab-panel">
+    <div class="print-section-header">종목 정보</div>
     <div id="info-grid"></div>
   </div>
 
   <!-- 탭 3: 투자자 동향 -->
   <div id="tab-investor" class="tab-panel">
+    <div class="print-section-header">투자자 동향</div>
     <div id="investor-wrap"></div>
   </div>
 
@@ -937,6 +982,7 @@
 
   <!-- 탭 4: 주가 차트 -->
   <div id="tab-chart" class="tab-panel">
+    <div class="print-section-header">주가 차트</div>
     <div class="chart-grid">
       <div class="card">
         <div class="card-title">주가 추이 (최근 7거래일 · 캔들스틱)</div>
@@ -963,6 +1009,7 @@
 
   <!-- 탭 5: 기업 개요 -->
   <div id="tab-company" class="tab-panel">
+    <div class="print-section-header">기업 개요</div>
     <div id="company-info-wrap"></div>
   </div>
 </main>
