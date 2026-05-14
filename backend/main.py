@@ -142,10 +142,12 @@ async def lifespan(app: FastAPI):
     loop = asyncio.get_event_loop()
 
     def _startup_tasks():
-        _backfill_history()        # 누락 날짜 백필 (내부에서 AI 호출)
-        _backfill_ai_comments()    # 기존 리포트 소급 AI
-        _patch_ohlcv_7d()
-        _patch_null_cap_ranks()
+        for fn in [_backfill_history, _backfill_ai_comments,
+                   _patch_ohlcv_7d, _patch_null_cap_ranks]:
+            try:
+                fn()
+            except Exception as e:
+                logger.error("[startup] %s 실패: %s", fn.__name__, e)
 
     loop.run_in_executor(None, _startup_tasks)
 

@@ -1,9 +1,12 @@
 import json
+import logging
 
 from google import genai
 from google.genai import types
 
 from config import GEMINI_API_KEY, WATCHLIST
+
+logger = logging.getLogger(__name__)
 
 _MODEL = "gemini-2.5-flash-lite"
 
@@ -37,8 +40,8 @@ def analyze(stocks: dict[str, dict]) -> tuple[dict[str, dict], str]:
         market_summary = parsed.get("market_summary", "")
         for ticker in enriched:
             enriched[ticker]["comment"] = parsed.get("stocks", {}).get(ticker, "")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("[analyzer] Gemini 호출 실패: %s", e)
 
     return enriched, market_summary
 
