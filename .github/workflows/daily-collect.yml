@@ -28,6 +28,7 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           KRX_ID: ${{ secrets.KRX_ID }}
           KRX_PW: ${{ secrets.KRX_PW }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python backend/run_collect.py
 
       - name: Commit and push reports
