@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import time
 from contextlib import asynccontextmanager
 from datetime import date, timedelta
 from pathlib import Path
@@ -49,8 +50,11 @@ def _backfill_history(days_to_check: int = 10, max_missing: int = 5):
             continue
         if not hist:
             continue  # 비영업일
-        reporter.save(d_str, hist, "")
+        enriched, market_summary = analyzer.analyze(hist)
+        reporter.save(d_str, enriched, market_summary)
         filled += 1
+        if filled < max_missing:
+            time.sleep(2)  # rate limit 방어
     reporter.prune(5)
 
 
@@ -107,19 +111,43 @@ async def _auto_collect_job():
     try:
         stocks = collector.collect()
         if stocks:
-            reporter.save(today, stocks, "")
+            enriched, market_summary = analyzer.analyze(stocks)
+            reporter.save(today, enriched, market_summary)
             reporter.prune(5)
             logger.info("[scheduler] %s 자동 수집 완료 (%d종목)", today, len(stocks))
     except Exception as e:
         logger.error("[scheduler] %s 자동 수집 실패: %s", today, e)
 
 
+def _backfill_ai_comments():
+    """market_summary가 비어 있는 기존 리포트에 Gemini AI 분석을 소급 적용."""
+    for date_str in reporter.list_dates():
+        report = reporter.load(date_str)
+        if report is None or report.get("market_summary"):
+            continue  # 이미 AI 있으면 스킵
+        stocks = report.get("stocks", {})
+        if not stocks:
+            continue
+        try:
+            enriched, market_summary = analyzer.analyze(stocks)
+            reporter.save(date_str, enriched, market_summary)
+            logger.info("[backfill_ai] %s 완료", date_str)
+            time.sleep(2)  # rate limit 방어
+        except Exception as e:
+            logger.warning("[backfill_ai] %s 실패: %s", date_str, e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, _backfill_history)
-    loop.run_in_executor(None, _patch_ohlcv_7d)
-    loop.run_in_executor(None, _patch_null_cap_ranks)
+
+    def _startup_tasks():
+        _backfill_history()        # 누락 날짜 백필 (내부에서 AI 호출)
+        _backfill_ai_comments()    # 기존 리포트 소급 AI
+        _patch_ohlcv_7d()
+        _patch_null_cap_ranks()
+
+    loop.run_in_executor(None, _startup_tasks)
 
     scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
     scheduler.add_job(_auto_collect_job, "cron", hour=16, minute=10)
