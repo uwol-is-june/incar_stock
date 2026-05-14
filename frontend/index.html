@@ -1892,9 +1892,27 @@
     const selected = [...pdfModal.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value);
     selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.add('print-include'));
 
-    window.print();
+    const chartTabEl = document.getElementById('tab-chart');
+    const needsChartInit = selected.includes('chart') && !chartTabEl.classList.contains('active');
 
-    selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.remove('print-include'));
+    function executePrint() {
+      window.print();
+      selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.remove('print-include'));
+    }
+
+    if (needsChartInit) {
+      chartTabEl.style.display = 'block';
+      chartTabEl.style.visibility = 'hidden';
+      if (priceChart) priceChart.resize();
+      if (volumeChart) volumeChart.resize();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        chartTabEl.style.display = '';
+        chartTabEl.style.visibility = '';
+        executePrint();
+      }));
+    } else {
+      executePrint();
+    }
   });
 
   init();
