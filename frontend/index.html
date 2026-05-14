@@ -578,6 +578,7 @@
       .index-strip {
         display: flex !important;
         gap: 8px;
+        margin-top: 14px;
         margin-bottom: 10px;
       }
       .index-card {
@@ -1023,8 +1024,9 @@
   const selectDate = document.getElementById('select-date');
   const headerMeta = document.getElementById('header-meta');
   const tbody      = document.getElementById('stock-tbody');
-  let priceChart   = null;
-  let volumeChart  = null;
+  let priceChart    = null;
+  let volumeChart   = null;
+  let _printOhlcv7d = null;
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1474,7 +1476,7 @@
   }
 
   /* ── 탭4: 주가 차트 렌더 ── */
-  function renderChart(ohlcv7d) {
+  function renderChart(ohlcv7d, noAnimation = false) {
     if (priceChart) { priceChart.destroy(); priceChart = null; }
     if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
 
@@ -1510,7 +1512,7 @@
       },
       options: {
         responsive: true,
-        animation: { duration: 600, easing: 'easeOutQuart' },
+        animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
         plugins: { legend: { display: false } },
         scales: {
           x: {
@@ -1540,7 +1542,7 @@
       },
       options: {
         responsive: true,
-        animation: { duration: 600, easing: 'easeOutQuart' },
+        animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { maxRotation: 0 } },
@@ -1776,6 +1778,7 @@
   /* ── 선택 날짜 기준 렌더링 ── */
   function renderFor(selected, allReports) {
     const stock = selected?.stocks?.[TICKER];
+    _printOhlcv7d = stock?.ohlcv_7d ?? null;
     renderIndexStrip(stock);
     renderPriceBanner(stock);
     renderPriceMetrics(stock);
@@ -1950,13 +1953,14 @@
     if (needsChartInit) {
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
-      if (priceChart) priceChart.resize();
-      if (volumeChart) volumeChart.resize();
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        chartTabEl.style.display = '';
-        chartTabEl.style.visibility = '';
-        executePrint();
-      }));
+      requestAnimationFrame(() => {
+        renderChart(_printOhlcv7d, true);
+        requestAnimationFrame(() => {
+          chartTabEl.style.display = '';
+          chartTabEl.style.visibility = '';
+          executePrint();
+        });
+      });
     } else {
       executePrint();
     }
