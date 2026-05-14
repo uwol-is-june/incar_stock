@@ -26,7 +26,7 @@ def analyze(stocks: dict[str, dict]) -> tuple[dict[str, dict], str]:
         response = client.models.generate_content(
             model=_MODEL,
             contents=_build_prompt(stocks),
-            config=types.GenerateContentConfig(max_output_tokens=1024),
+            config=types.GenerateContentConfig(max_output_tokens=2048),
         )
         text = response.text.strip()
         # 마크다운 코드 펜스 제거
@@ -103,7 +103,12 @@ def _build_prompt(stocks: dict[str, dict]) -> str:
         '{\n'
         '  "market_summary": "시장 전체 한줄 요약 (1~2문장)",\n'
         '  "stocks": {\n'
-        '    "<ticker>": "종목 분석 코멘트 (2~3문장, 투자자 동향·거래량 등을 구체적으로 언급)"\n'
+        '    "<ticker>": "종목 분석 코멘트 — 아래 5개 항목을 **마크다운** 형식으로 작성:\n'
+        '### 가격 / 등락\\n(당일 주가 흐름과 등락 배경 분석)\\n\\n'
+        '### 투자자 동향\\n(개인·외국인·기관·연기금 순매수 방향과 의미 분석)\\n\\n'
+        '### 거래량 · 거래대금\\n(거래 활성도와 자금 유입/유출 의미 분석)\\n\\n'
+        '### 시장 대비 상대 강도\\n(KOSPI·KOSDAQ 흐름 대비 종목 상대 강도 분석)\\n\\n'
+        '### 종합 의견\\n(전체를 아우르는 C-level 임원용 한줄 결론)"\n'
         '  }\n'
         '}'
     )
