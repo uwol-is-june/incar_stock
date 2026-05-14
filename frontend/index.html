@@ -2014,6 +2014,20 @@
     tick();
   }
 
+  function startBackgroundWatcher() {
+    const INTERVAL_MS = 60_000;
+    const timerId = setInterval(async () => {
+      const overlay = document.getElementById('collecting-overlay');
+      if (overlay.style.display === 'flex') return;
+      const run = await isGitHubActionsRunning();
+      if (run) {
+        clearInterval(timerId);
+        overlay.style.display = 'flex';
+        startProgressPolling(new Date(run.created_at).getTime());
+      }
+    }, INTERVAL_MS);
+  }
+
   async function init() {
     const run = await isGitHubActionsRunning();
     if (run) {
@@ -2022,6 +2036,7 @@
       return;
     }
     loadAll();
+    startBackgroundWatcher();
   }
 
   /* ── 차트 캔버스 인쇄 변환 (canvas → img) ── */

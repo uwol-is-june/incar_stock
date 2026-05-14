@@ -21,15 +21,16 @@ def analyze(stocks: dict[str, dict]) -> tuple[dict[str, dict], str]:
         return enriched, ""
 
     market_summary = ""
-    try:
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        response = client.models.generate_content(
+    prompt = _build_prompt(stocks)
+    client = genai.Client(api_key=GEMINI_API_KEY)
+
+    def _call_gemini() -> tuple[dict, str]:
+        resp = client.models.generate_content(
             model=_MODEL,
-            contents=_build_prompt(stocks),
+            contents=prompt,
             config=types.GenerateContentConfig(max_output_tokens=2048),
         )
-        text = response.text.strip()
-        # 마크다운 코드 펜스 제거
+        text = resp.text.strip()
         if text.startswith("```"):
             parts = text.split("```")
             text = parts[1] if len(parts) > 1 else text
@@ -37,11 +38,20 @@ def analyze(stocks: dict[str, dict]) -> tuple[dict[str, dict], str]:
                 text = text[4:]
             text = text.strip()
         parsed = json.loads(text)
-        market_summary = parsed.get("market_summary", "")
-        for ticker in enriched:
-            enriched[ticker]["comment"] = parsed.get("stocks", {}).get(ticker, "")
+        return parsed.get("stocks", {}), parsed.get("market_summary", "")
+
+    try:
+        stocks_result, market_summary = _call_gemini()
     except Exception as e:
-        logger.warning("[analyzer] Gemini 호출 실패: %s", e)
+        logger.warning("[analyzer] Gemini 1차 실패, 재시도: %s", e)
+        try:
+            stocks_result, market_summary = _call_gemini()
+        except Exception as e2:
+            logger.error("[analyzer] Gemini 최종 실패: %s", e2)
+            stocks_result = {}
+
+    for ticker in enriched:
+        enriched[ticker]["comment"] = stocks_result.get(ticker, "")
 
     return enriched, market_summary
 
