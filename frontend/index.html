@@ -404,15 +404,26 @@
       color: #fff;
       gap: 20px;
     }
-    .collecting-spinner {
-      width: 44px;
-      height: 44px;
-      border: 4px solid rgba(255,255,255,0.2);
-      border-top-color: #60a5fa;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
+    .collecting-progress-wrap {
+      width: 280px;
+      height: 8px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 99px;
+      overflow: hidden;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .collecting-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #60a5fa;
+      border-radius: 99px;
+      transition: width 1s ease;
+    }
+    .collecting-percent {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #60a5fa;
+      letter-spacing: -0.5px;
+    }
     @keyframes fadeInDown {
       from { opacity: 0; transform: translateY(-12px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -453,9 +464,12 @@
 <body>
 
 <div id="collecting-overlay">
-  <div class="collecting-spinner"></div>
   <div class="collecting-title">데이터 수집 중입니다</div>
-  <div class="collecting-sub">잠시 후 다시 접속해주세요</div>
+  <div class="collecting-percent" id="collecting-percent">0%</div>
+  <div class="collecting-progress-wrap">
+    <div class="collecting-progress-bar" id="collecting-progress-bar"></div>
+  </div>
+  <div class="collecting-sub" id="collecting-sub">GitHub Actions 워크플로우 실행 중...</div>
 </div>
 
 <header>
@@ -720,7 +734,7 @@
       <div class="card" style="margin-top:10px;">
         <div class="card-title">수동 수집 실행</div>
         <p style="font-size:0.85rem; color:#6b7280; margin:0 20px 14px;">
-          pykrx 데이터가 확정(16:00 KST 이후 평일)된 경우에만 실행하세요. 수분 후 자동으로 갱신됩니다.
+          pykrx 데이터가 확정(16:20 KST 이후 평일)된 경우에만 실행하세요. 자동 수집(16:10) 완료 후 실행 권장. 수분 후 자동으로 갱신됩니다.
         </p>
         <div style="padding:0 20px 20px;">
           <button id="btn-manual-collect" class="btn-trigger" disabled>지금 수집 실행</button>
@@ -810,17 +824,17 @@
       + String(kst.getMonth() + 1).padStart(2, '0') + '-'
       + String(kst.getDate()).padStart(2, '0');
     const dow  = kst.getDay();
-    const hour = kst.getHours();
+    const minutesSinceMidnight = kst.getHours() * 60 + kst.getMinutes();
 
-    const alreadyDone = latestDate === today;
-    const isWeekday   = dow >= 1 && dow <= 5;
-    const isAfter16   = hour >= 16;
+    const alreadyDone  = latestDate === today;
+    const isWeekday    = dow >= 1 && dow <= 5;
+    const isAfter1620  = minutesSinceMidnight >= 16 * 60 + 20;
 
     let krxStatus, krxSub;
-    if (alreadyDone)     { krxStatus = 'done';  krxSub = '오늘 수집 완료'; }
-    else if (!isWeekday) { krxStatus = 'na';    krxSub = '비거래일'; }
-    else if (!isAfter16) { krxStatus = 'wait';  krxSub = '장 마감 후(16:00 KST) 확정'; }
-    else                 { krxStatus = 'ready'; krxSub = '16:00 KST 이후 · 평일'; }
+    if (alreadyDone)      { krxStatus = 'done';  krxSub = '오늘 수집 완료'; }
+    else if (!isWeekday)  { krxStatus = 'na';    krxSub = '비거래일'; }
+    else if (!isAfter1620){ krxStatus = 'wait';  krxSub = '16:20 KST 이후 수동 수집 가능 (자동 수집 완료 후)'; }
+    else                  { krxStatus = 'ready'; krxSub = '16:20 KST 이후 · 평일'; }
 
     const dartOk     = window._latestReport?.stocks?.['211050']?.net_income_ttm != null;
     const dartStatus = dartOk ? 'ready' : 'na';
@@ -839,7 +853,7 @@
         <div class="update-status-sub">${dartSub}</div>
       </div>`;
 
-    btn.disabled = !(isWeekday && isAfter16 && !alreadyDone);
+    btn.disabled = !(isWeekday && isAfter1620 && !alreadyDone);
   }
 
   document.getElementById('btn-manual-collect').addEventListener('click', async () => {
@@ -851,15 +865,15 @@
     try {
       const res = await fetch('/api/trigger-collect', { method: 'POST' });
       if (res.ok) {
-        result.innerHTML = '<span style="color:#16a34a">✅ 수집 요청 완료. 수분 후 자동 갱신됩니다.</span>';
-        btn.textContent = '요청 완료';
+        document.getElementById('collecting-overlay').style.display = 'flex';
+        startProgressPolling(Date.now());
       } else {
-        result.innerHTML = '<span style="color:#dc2626">❌ 요청 실패. GitHub 토큰을 확인하세요.</span>';
+        result.innerHTML = '<span style="color:#dc2626">❌ 수집 요청 실패</span><br><span style="color:#64748b">담당자 문의: AI전략팀 서준 (02-6226-9197)</span>';
         btn.disabled = false;
         btn.textContent = '지금 수집 실행';
       }
     } catch {
-      result.innerHTML = '<span style="color:#dc2626">❌ 네트워크 오류</span>';
+      result.innerHTML = '<span style="color:#dc2626">❌ 네트워크 오류</span><br><span style="color:#64748b">담당자 문의: AI전략팀 서준 (02-6226-9197)</span>';
       btn.disabled = false;
       btn.textContent = '지금 수집 실행';
     }
@@ -1587,25 +1601,53 @@
     }
   });
 
-  /* ── GitHub Actions 실행 여부 확인 ── */
+  /* ── GitHub Actions 실행 여부 확인 (run 객체 또는 null 반환) ── */
   async function isGitHubActionsRunning() {
     try {
       const res = await fetch(
         'https://api.github.com/repos/uwol-is-june/incar_stock/actions/runs?status=in_progress',
         { headers: { 'Accept': 'application/vnd.github+json' } }
       );
-      if (!res.ok) return false;
+      if (!res.ok) return null;
       const data = await res.json();
-      return data.total_count > 0;
+      return data.total_count > 0 ? data.workflow_runs[0] : null;
     } catch {
-      return false;
+      return null;
     }
   }
 
+  /* ── 프로그레스바 폴링 (startTime: ms timestamp) ── */
+  function startProgressPolling(startTime) {
+    const ESTIMATED_MS = 240_000; // 예상 소요 시간 4분
+
+    async function tick() {
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(95, Math.round(elapsed / ESTIMATED_MS * 100));
+      document.getElementById('collecting-progress-bar').style.width = pct + '%';
+      document.getElementById('collecting-percent').textContent = pct + '%';
+
+      const run = await isGitHubActionsRunning();
+      if (!run) {
+        document.getElementById('collecting-progress-bar').style.width = '100%';
+        document.getElementById('collecting-percent').textContent = '100%';
+        document.getElementById('collecting-sub').textContent = '수집 완료! 데이터를 불러오는 중...';
+        setTimeout(() => {
+          document.getElementById('collecting-overlay').style.display = 'none';
+          loadAll();
+        }, 800);
+        return;
+      }
+      setTimeout(tick, 15_000);
+    }
+
+    tick();
+  }
+
   async function init() {
-    const running = await isGitHubActionsRunning();
-    if (running) {
+    const run = await isGitHubActionsRunning();
+    if (run) {
       document.getElementById('collecting-overlay').style.display = 'flex';
+      startProgressPolling(new Date(run.created_at).getTime());
       return;
     }
     loadAll();

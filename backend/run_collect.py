@@ -19,6 +19,11 @@ def main() -> None:
         logger.info("[run_collect] %s 비영업일, 스킵", today)
         return
 
+    report_path = Path(__file__).parent.parent / "reports" / f"{today}.json"
+    if report_path.exists():
+        logger.info("[run_collect] %s 이미 수집됨, 스킵", today)
+        return
+
     logger.info("[run_collect] %s 수집 시작", today)
     stocks = collector.collect()
     if not stocks:
