@@ -1,14 +1,15 @@
 {
   "date": "2026-05-13",
-  "generated_at": "2026-05-13T09:57:53",
-  "market_summary": "",
+  "generated_at": "2026-05-14T10:57:53",
+  "market_summary": "금일 KOSPI는 큰 폭으로 상승하며 시장 전반의 강세를 주도했지만, KOSDAQ은 소폭 하락하며 혼조세를 보였습니다.",
   "stocks": {
     "211050": {
+      "name": "인카금융서비스",
       "close": 10070,
       "prev_close": 9980,
       "change": 90,
       "change_pct": 0.9,
-      "is_fallback": false,
+      "is_fallback": true,
       "data_date": "2026-05-13",
       "prev_date": "2026-05-12",
       "ohlcv_7d": [
@@ -89,16 +90,16 @@
       "volume": 122601,
       "trading_value": 1251008020,
       "week52_high": 17330,
-      "week52_low": 8200,
+      "week52_low": 8540,
       "market_cap": 496085025990,
       "listed_shares": 49263657,
-      "per": 6.8,
-      "pbr": 2.29,
+      "per": 7.05,
+      "pbr": 2.38,
       "eps": 1480,
       "bps": 4391,
       "equity": 214409548000,
-      "foreign_pct": 2.99,
-      "exhaustion_rate": 2.99,
+      "foreign_pct": 2.98,
+      "exhaustion_rate": 2.98,
       "cap_rank": 240,
       "kospi": {
         "close": 7844.01,
@@ -234,7 +235,8 @@
             ]
           }
         ]
-      }
+      },
+      "comment": "인카금융서비스는 금일 0.9% 상승한 10,070원에 마감했습니다. 개인과 기관의 순매수가 유입된 가운데 외국인은 소폭 순매도하며 관망세를 보였으며, 거래량은 12만주 수준으로 전반적인 시장 흐름에 비해 다소 둔화된 모습을 나타냈습니다."
     }
   }
 }

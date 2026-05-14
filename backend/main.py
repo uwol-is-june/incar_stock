@@ -355,6 +355,31 @@ def backfill_cap_rank():
     return {"patched": patched, "skipped": skipped, "failed": failed}
 
 
+@app.post("/api/backfill-ai")
+def backfill_ai():
+    """market_summary가 없는 리포트에 AI 분석을 소급 적용."""
+    updated, skipped = [], []
+    for date_str in reporter.list_dates():
+        report = reporter.load(date_str)
+        if report is None or report.get("market_summary"):
+            skipped.append(date_str)
+            continue
+        stocks = report.get("stocks", {})
+        if not stocks:
+            skipped.append(date_str)
+            continue
+        try:
+            enriched, market_summary = analyzer.analyze(stocks)
+            reporter.save(date_str, enriched, market_summary)
+            updated.append(date_str)
+            logger.info("[backfill-ai] %s 완료", date_str)
+            time.sleep(2)
+        except Exception as e:
+            logger.warning("[backfill-ai] %s 실패: %s", date_str, e)
+            skipped.append(date_str)
+    return {"updated": updated, "skipped": skipped}
+
+
 @app.post("/api/update/{date_str}")
 def update_report(date_str: str):
     if not reporter.exists(date_str):
