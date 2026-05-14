@@ -1956,9 +1956,10 @@
       requestAnimationFrame(() => {
         renderChart(_printOhlcv7d, true);
         requestAnimationFrame(() => {
-          chartTabEl.style.display = '';
           chartTabEl.style.visibility = '';
-          executePrint();
+          window.print();
+          chartTabEl.style.display = '';
+          selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.remove('print-include'));
         });
       });
     } else {
