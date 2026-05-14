@@ -76,9 +76,6 @@
       gap: 10px;
       margin-bottom: 0;
     }
-    @media (max-width: 700px) {
-      .metrics-grid { grid-template-columns: repeat(3, 1fr); }
-    }
     .metrics-section { margin-bottom: 14px; }
     .metrics-section-title {
       font-size: 0.68rem;
@@ -459,9 +456,176 @@
     .company-history-table td { padding: 6px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: top; text-align: left; }
     .company-history-table tr:last-child td { border-bottom: none; }
     .ch-arrow { color: #9ca3af; margin: 0 4px; }
+
+    /* ─── PDF 출력 버튼 ─── */
+    #btn-print-pdf {
+      padding: 6px 12px;
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #btn-print-pdf:hover { background: #2d3f52; }
+
+    /* ─── PDF 선택 팝업 ─── */
+    #pdf-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+    }
+    .pdf-modal-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      width: 340px;
+      max-width: calc(100vw - 40px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .pdf-modal-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .pdf-modal-desc {
+      font-size: 0.82rem;
+      color: #6b7280;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .pdf-check-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .pdf-check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: #374151;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid #e4e7ec;
+      user-select: none;
+    }
+    .pdf-check-item:not(.pdf-always-on) { cursor: pointer; }
+    .pdf-check-item:not(.pdf-always-on):hover { background: #f8fafc; }
+    .pdf-check-item.pdf-always-on {
+      background: #f0f9ff;
+      border-color: #bae6fd;
+      color: #0369a1;
+    }
+    .pdf-check-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; flex-shrink: 0; }
+    .pdf-always-tag { font-size: 0.72rem; color: #0ea5e9; margin-left: auto; }
+    .pdf-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .pdf-btn-cancel {
+      padding: 8px 18px; border-radius: 7px;
+      border: 1px solid #e4e7ec; background: #fff;
+      color: #6b7280; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+    }
+    .pdf-btn-cancel:hover { background: #f8fafc; }
+    .pdf-btn-print {
+      padding: 8px 18px; border-radius: 7px;
+      border: none; background: #2563eb;
+      color: #fff; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+    }
+    .pdf-btn-print:hover { background: #1d4ed8; }
+
+    /* ─── 인쇄(@media print) ─── */
+    @media print {
+      #collecting-overlay, #pdf-modal { display: none !important; }
+      .tab-nav, .admin-tabs { display: none !important; }
+      .header-controls { display: none !important; }
+      .header-meta { display: none !important; }
+      #tab-admin { display: none !important; }
+      body { background: #fff !important; }
+      main { margin: 0 auto !important; padding: 0 16px !important; }
+      header { animation: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .index-strip, #price-banner { animation: none !important; }
+      .tab-panel { display: none !important; animation: none !important; }
+      .tab-panel.print-include { display: block !important; }
+      .metric-card { animation: none !important; }
+      .card { box-shadow: none; }
+      tr { animation: none !important; }
+    }
+
+    /* ─── 모바일 반응형 ─── */
+    @media (max-width: 640px) {
+      /* 관리자 탭 숨기기 */
+      .admin-tabs { display: none; }
+      #tab-admin  { display: none !important; }
+
+      /* 헤더 */
+      header { padding: 10px 14px; }
+      header h1 { font-size: 0.95rem; }
+      .header-ticker { font-size: 0.65rem; }
+      .header-meta { font-size: 0.65rem; }
+
+      /* 본문 */
+      main { margin: 10px auto; padding: 0 10px 20px; }
+
+      /* 지수 스트립 */
+      .index-strip { gap: 6px; }
+      .index-card { padding: 10px 12px; }
+      .index-value { font-size: 1rem; }
+
+      /* 종가 배너 */
+      .price-banner { padding: 10px 14px; }
+      .price-banner-close { font-size: 1.3rem; }
+
+      /* 탭 네비게이션 가로 스크롤 */
+      .tab-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .tab-nav::-webkit-scrollbar { display: none; }
+      .tab-btn { padding: 8px 13px; font-size: 0.8rem; white-space: nowrap; }
+
+      /* KPI 그리드 2열 */
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+
+      /* 테이블 가로 스크롤 허용 (card overflow: hidden 해제) */
+      .card { overflow: visible; }
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      th, td { padding: 8px 10px; }
+    }
   </style>
 </head>
 <body>
+
+<div id="pdf-modal">
+  <div class="pdf-modal-card">
+    <div class="pdf-modal-title">PDF 출력 옵션</div>
+    <p class="pdf-modal-desc">지수·종가 정보는 항상 포함됩니다. 추가로 포함할 섹션을 선택하세요.</p>
+    <div class="pdf-check-list">
+      <div class="pdf-check-item pdf-always-on">
+        <span>📊 지수 · 종가 정보</span>
+        <span class="pdf-always-tag">항상 포함</span>
+      </div>
+      <label class="pdf-check-item">
+        <input type="checkbox" value="price" checked> 시세 현황
+      </label>
+      <label class="pdf-check-item">
+        <input type="checkbox" value="info" checked> 종목 정보
+      </label>
+      <label class="pdf-check-item">
+        <input type="checkbox" value="investor" checked> 투자자 동향
+      </label>
+      <label class="pdf-check-item">
+        <input type="checkbox" value="chart" checked> 주가 차트
+      </label>
+      <label class="pdf-check-item">
+        <input type="checkbox" value="company"> 기업 개요
+      </label>
+    </div>
+    <div class="pdf-modal-actions">
+      <button class="pdf-btn-cancel" id="pdf-cancel">취소</button>
+      <button class="pdf-btn-print" id="pdf-confirm">출력</button>
+    </div>
+  </div>
+</div>
 
 <div id="collecting-overlay">
   <div class="collecting-title">데이터 수집 중입니다</div>
@@ -480,6 +644,7 @@
   <div class="header-right">
     <div class="header-controls">
       <select id="select-date"></select>
+      <button id="btn-print-pdf">PDF 출력</button>
     </div>
     <div class="header-meta" id="header-meta"></div>
   </div>
@@ -838,7 +1003,17 @@
 
     const dartOk     = window._latestReport?.stocks?.['211050']?.net_income_ttm != null;
     const dartStatus = dartOk ? 'ready' : 'na';
-    const dartSub    = dartOk ? '최근 분기 순이익 수집됨' : '미연동 (수집에 영향 없음)';
+
+    let dartSub;
+    if (!dartOk) {
+      dartSub = '미연동 (수집에 영향 없음)';
+    } else {
+      const fins   = window._latestReport.stocks['211050'].dart_financials ?? [];
+      const labels = fins.map(f => f.period?.replace(/^20/, '') ?? '');
+      const ttmStr = labels.join(' · ');
+      const eqStr  = labels[0] ?? '';
+      dartSub = `TTM 순이익: ${ttmStr}<br>자본총액: ${eqStr} 기준`;
+    }
 
     const LABEL = { ready: '✅ 준비됨', wait: '⏳ 대기 중', done: '✔ 완료', na: '— 해당없음' };
     grid.innerHTML = `
@@ -1652,6 +1827,32 @@
     }
     loadAll();
   }
+
+  /* ── PDF 출력 팝업 ── */
+  const pdfModal = document.getElementById('pdf-modal');
+
+  document.getElementById('btn-print-pdf').addEventListener('click', () => {
+    pdfModal.style.display = 'flex';
+  });
+
+  document.getElementById('pdf-cancel').addEventListener('click', () => {
+    pdfModal.style.display = 'none';
+  });
+
+  pdfModal.addEventListener('click', e => {
+    if (e.target === pdfModal) pdfModal.style.display = 'none';
+  });
+
+  document.getElementById('pdf-confirm').addEventListener('click', () => {
+    pdfModal.style.display = 'none';
+
+    const selected = [...pdfModal.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value);
+    selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.add('print-include'));
+
+    window.print();
+
+    selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.remove('print-include'));
+  });
 
   init();
 </script>
