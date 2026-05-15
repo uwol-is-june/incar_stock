@@ -283,34 +283,46 @@
       50%       { filter: drop-shadow(0 0 5px   rgba(59,130,246,0.1)); }
     }
 
-    /* ─── 종가 + AI 의견 행 래퍼 ─── */
-    #price-ai-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 14px;
-      align-items: stretch;
-    }
-    #price-banner { flex: 0 0 auto; }
-
-    /* ─── 종가 배너 ─── */
-    .price-banner {
+    /* ─── Hero 카드 (인카 종가 + AI 의견) ─── */
+    #hero-card { margin-bottom: 10px; }
+    .hero-card {
       background: #fff;
       border: 1px solid #e4e7ec;
-      border-radius: 10px;
-      padding: 14px 20px;
+      border-radius: 12px;
+      padding: 18px 24px;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      gap: 20px;
-      height: 100%;
-      box-sizing: border-box;
+      gap: 0;
     }
-    .price-banner-label  { font-size: 0.7rem; font-weight: 700; color: #9ca3af; }
-    .price-banner-date   { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
-    .price-banner-close  { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
-    .price-banner-change { font-size: 0.88rem; font-weight: 600; margin-top: 4px; }
-    .price-banner-right  { text-align: right; }
-    .price-banner-pending { font-size: 0.82rem; color: #9ca3af; font-style: italic; }
+    .hero-left { flex-shrink: 0; }
+    .hero-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #9ca3af;
+      letter-spacing: 0.3px;
+    }
+    .hero-date { font-size: 0.78rem; color: #6b7280; margin-top: 2px; margin-bottom: 8px; }
+    .hero-close {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .hero-change { font-size: 0.9rem; font-weight: 600; margin-top: 5px; }
+    .hero-divider {
+      width: 1px;
+      background: #e4e7ec;
+      align-self: stretch;
+      flex-shrink: 0;
+      margin: 0 22px;
+    }
+    .hero-opinion {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
 
     /* ─── 소진율 progress bar ─── */
     .progress-wrap {
@@ -494,8 +506,8 @@
       to   { opacity: 1; transform: translateY(0); }
     }
     header          { animation: fadeInDown 0.35s ease both; animation-delay: 0ms; }
-    .index-strip    { animation: fadeInDown 0.35s ease both; animation-delay: 80ms; }
-    #price-banner   { animation: fadeInDown 0.35s ease both; animation-delay: 160ms; }
+    #hero-card      { animation: fadeInDown 0.35s ease both; animation-delay: 80ms; }
+    .index-strip    { animation: fadeInDown 0.35s ease both; animation-delay: 160ms; }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0.4; }
@@ -705,14 +717,9 @@
       /* 차트 캔버스 크기 제한 */
       canvas { max-width: 100% !important; }
 
-      /* 종가 + AI 의견 행 */
-      #price-ai-row { display: flex !important; gap: 8px; margin-bottom: 10px; }
-      #price-banner { flex: 0 0 auto; }
-      #ai-opinion-strip:not(:empty) { flex: 1; min-width: 0; }
-
-      /* 여백·폰트 최적화 */
-      .price-banner       { padding: 10px 16px; }
-      .price-banner-close { font-size: 1.3rem !important; }
+      /* Hero 카드 */
+      #hero-card { margin-bottom: 8px; }
+      .hero-close { font-size: 1.5rem !important; }
 
       /* 지수 스트립 — 배경·색상 강제 출력 */
       .index-strip {
@@ -814,18 +821,6 @@
       font-style: italic;
     }
 
-    /* ─── AI 종합 의견 고정 스트립 ─── */
-    #ai-opinion-strip:not(:empty) {
-      background: #fff;
-      border: 1px solid #e4e7ec;
-      border-radius: 10px;
-      padding: 12px 20px;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      flex: 1;
-      min-width: 0;
-    }
     .opinion-label {
       font-size: 0.68rem;
       font-weight: 700;
@@ -863,13 +858,10 @@
       .index-card { padding: 10px 12px; }
       .index-value { font-size: 1rem; }
 
-      /* 종가 + AI 의견 행 */
-      #price-ai-row { flex-direction: column; gap: 8px; }
-      #price-banner { flex: none; }
-
-      /* 종가 배너 */
-      .price-banner { padding: 10px 14px; }
-      .price-banner-close { font-size: 1.3rem; }
+      /* Hero 카드 모바일 */
+      .hero-card { flex-direction: column; align-items: flex-start; padding: 14px 16px; }
+      .hero-divider { width: 100%; height: 1px; margin: 12px 0; }
+      .hero-close { font-size: 1.5rem; }
 
       /* 탭 네비게이션 가로 스크롤 */
       .tab-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -971,14 +963,11 @@
 </header>
 
 <main>
+  <!-- Hero 카드: 인카 종가 + AI 한 줄 요약 -->
+  <div id="hero-card"></div>
+
   <!-- KOSPI / KOSDAQ 지수 스트립 -->
   <div class="index-strip" id="index-strip"></div>
-
-  <!-- 종가 배너 + AI 종합 의견 (같은 행) -->
-  <div id="price-ai-row">
-    <div id="price-banner"></div>
-    <div id="ai-opinion-strip"></div>
-  </div>
 
   <!-- 탭 네비게이션 -->
   <nav class="tab-nav">
@@ -1692,25 +1681,40 @@
   })();
 
   /* ── 종가 배너 렌더 ── */
-  function renderPriceBanner(s) {
-    const el = document.getElementById('price-banner');
+  function renderHeroCard(s, report) {
+    const el = document.getElementById('hero-card');
     if (!s) { el.innerHTML = ''; return; }
 
     const c = cls(s.change_pct);
     const sign = s.change > 0 ? '+' : '';
+
+    const comment = report?.stocks?.[TICKER]?.comment;
+    let opinionHtml = '';
+    if (comment) {
+      const match = comment.match(/###\s*종합 의견:?\s*([\s\S]*?)(?=\n###|$)/);
+      const text = match ? match[1].trim().replace(/^[-*]\s*/, '') : null;
+      if (text) {
+        opinionHtml = `
+          <div class="hero-divider"></div>
+          <div class="hero-opinion">
+            <span class="opinion-label">AI 종합 의견</span>
+            <span class="opinion-text">${text}</span>
+          </div>`;
+      }
+    }
+
     el.innerHTML = `
-      <div class="price-banner">
-        <div>
-          <div class="price-banner-label">인카금융서비스 · 211050</div>
-          <div class="price-banner-date">${s.data_date}</div>
-        </div>
-        <div class="price-banner-right">
-          <div class="price-banner-close ${c}">${s.close != null ? s.close.toLocaleString('ko-KR') + '원' : '—'}</div>
-          <div class="price-banner-change ${c}">
+      <div class="hero-card">
+        <div class="hero-left">
+          <div class="hero-label">인카금융서비스 · 211050</div>
+          <div class="hero-date">${s.data_date}</div>
+          <div class="hero-close ${c}">${s.close != null ? s.close.toLocaleString('ko-KR') + '원' : '—'}</div>
+          <div class="hero-change ${c}">
             ${sign}${s.change != null ? s.change.toLocaleString('ko-KR') : '—'}원
             &nbsp;(${sign}${s.change_pct != null ? s.change_pct + '%' : '—'})
           </div>
         </div>
+        ${opinionHtml}
       </div>`;
   }
 
@@ -2146,20 +2150,6 @@
     return html;
   }
 
-  /* ── 종합 의견 상단 고정 스트립 ── */
-  function renderAIOpinionStrip(report) {
-    const el = document.getElementById('ai-opinion-strip');
-    if (!el) return;
-    const comment = report?.stocks?.[TICKER]?.comment;
-    if (!comment) { el.innerHTML = ''; return; }
-
-    const match = comment.match(/###\s*종합 의견:?\s*([\s\S]*?)(?=\n###|$)/);
-    const text = match ? match[1].trim().replace(/^[-*]\s*/, '') : null;
-    if (!text) { el.innerHTML = ''; return; }
-
-    el.innerHTML = `<span class="opinion-label">AI 종합 의견</span><span class="opinion-text">${text}</span>`;
-  }
-
   /* ── 탭6: AI 분석 렌더 ── */
   function renderAI(report) {
     const wrap = document.getElementById('ai-wrap');
@@ -2188,9 +2178,8 @@
   function renderFor(selected, allReports) {
     const stock = selected?.stocks?.[TICKER];
     _printOhlcv7d = stock?.ohlcv_7d ?? null;
+    renderHeroCard(stock, selected);
     renderIndexStrip(stock);
-    renderPriceBanner(stock);
-    renderAIOpinionStrip(selected);
     renderPriceMetrics(stock);
     renderCompanyInfo(stock);
     renderInfoMetrics(stock);
