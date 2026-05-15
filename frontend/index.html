@@ -258,6 +258,23 @@
     .index-value { font-size: 1.2rem; font-weight: 700; }
     .index-delta { font-size: 0.82rem; font-weight: 600; text-align: right; }
     .index-delta .index-pct { font-size: 0.72rem; color: #a0aec0; display: block; margin-top: 1px; }
+    .index-value-row { display: flex; align-items: center; gap: 5px; }
+    .mini-spark { flex-shrink: 0; display: block; }
+    .glow-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .glow-dot.up   { background: #ef4444; animation: glowPulseUp 2s ease-in-out infinite; }
+    .glow-dot.down { background: #3b82f6; animation: glowPulseDown 2s ease-in-out infinite; }
+    @keyframes glowPulseUp {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.55); }
+      50%       { box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+    }
+    @keyframes glowPulseDown {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.55); }
+      50%       { box-shadow: 0 0 0 5px rgba(59,130,246,0); }
+    }
 
     /* ─── 종가 + AI 의견 행 래퍼 ─── */
     #price-ai-row {
@@ -1599,7 +1616,11 @@
         <div class="index-card-row">
           <div>
             <div class="index-name">${name}</div>
-            <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            <div class="index-value-row">
+              <svg class="mini-spark" id="mini-spark-${key}" width="52" height="24" viewBox="0 0 52 24"></svg>
+              <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <span class="glow-dot ${c}"></span>
+            </div>
           </div>
           <div class="index-delta ${c}">
             ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
@@ -1650,6 +1671,25 @@
 
     _sparklineCharts['kospi']  = drawSparkline('sparkline-kospi',  s.kospi_history,  (s.kospi?.change_pct  ?? 0) >= 0);
     _sparklineCharts['kosdaq'] = drawSparkline('sparkline-kosdaq', s.kosdaq_history, (s.kosdaq?.change_pct ?? 0) >= 0);
+
+    function drawMiniSparkline(svgId, history, isUp) {
+      const el = document.getElementById(svgId);
+      if (!el || !history || history.length < 2) return;
+      const w = 52, h = 24, pad = 2;
+      const vals = history.slice(-15).map(h => h.close);
+      const min = Math.min(...vals), max = Math.max(...vals);
+      const range = max - min || 1;
+      const pts = vals.map((v, i) => {
+        const x = pad + (i / (vals.length - 1)) * (w - pad * 2);
+        const y = pad + (1 - (v - min) / range) * (h - pad * 2);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+      const color = isUp ? '#ef4444' : '#3b82f6';
+      el.innerHTML = `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    }
+
+    drawMiniSparkline('mini-spark-kospi',  s.kospi_history,  (s.kospi?.change_pct  ?? 0) >= 0);
+    drawMiniSparkline('mini-spark-kosdaq', s.kosdaq_history, (s.kosdaq?.change_pct ?? 0) >= 0);
 
     // 클릭 → 상세 모달
     strip.querySelectorAll('.index-card[data-index]').forEach(card => {
@@ -2138,8 +2178,8 @@
   /* ── AI 텍스트 등락 색상 후처리 ── */
   function colorizeChanges(html) {
     return html
-      .replace(/\b(상승|급등|강세|반등|오름)\b/g, '<span class="ai-rise">$1</span>')
-      .replace(/\b(하락|급락|약세|하향|내림)\b/g, '<span class="ai-fall">$1</span>');
+      .replace(/(상승|급등|강세|반등|오름)/g, '<span class="ai-rise">$1</span>')
+      .replace(/(하락|급락|약세|하향|내림)/g, '<span class="ai-fall">$1</span>');
   }
 
   /* ── 종합 의견 상단 고정 스트립 ── */
@@ -2149,7 +2189,7 @@
     const comment = report?.stocks?.[TICKER]?.comment;
     if (!comment) { el.innerHTML = ''; return; }
 
-    const match = comment.match(/###\s*종합 의견\s*\n([\s\S]*?)(?=\n###|$)/);
+    const match = comment.match(/###\s*종합 의견:?\s*\n([\s\S]*?)(?=\n###|$)/);
     const text = match ? match[1].trim().replace(/^[-*]\s*/, '') : null;
     if (!text) { el.innerHTML = ''; return; }
 
