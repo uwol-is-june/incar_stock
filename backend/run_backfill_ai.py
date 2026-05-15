@@ -23,6 +23,14 @@ def main() -> None:
             continue
         logger.info("[backfill_ai] %s AI 재분석 시작", date_str)
         enriched, market_summary = analyzer.analyze(report["stocks"])
+
+        # Gemini 실패 시 기존 comment/market_summary 보존
+        for ticker, data in enriched.items():
+            if not data.get("comment"):
+                data["comment"] = report["stocks"].get(ticker, {}).get("comment", "")
+        if not market_summary:
+            market_summary = report.get("market_summary", "")
+
         reporter.save(date_str, enriched, market_summary)
         logger.info("[backfill_ai] %s 완료", date_str)
 
