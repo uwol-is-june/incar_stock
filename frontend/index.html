@@ -254,6 +254,7 @@
     .index-delta { font-size: 0.82rem; font-weight: 600; text-align: right; }
     .index-delta .index-pct { font-size: 0.72rem; color: #a0aec0; display: block; margin-top: 1px; }
     .index-value-row { display: flex; align-items: center; gap: 5px; }
+    .index-right { display: flex; align-items: center; gap: 8px; }
     .mini-spark { flex-shrink: 0; display: block; }
     .glow-dot {
       width: 7px; height: 7px;
@@ -1615,13 +1616,13 @@
       return `<div class="index-card" data-index="${key}">
         <div class="index-card-row">
           <div class="index-name">${name}</div>
-          <div class="index-value-row">
+          <div class="index-right">
             <svg class="mini-spark" id="mini-spark-${key}" width="52" height="24" viewBox="0 0 52 24" style="overflow:visible"></svg>
             <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-          </div>
-          <div class="index-delta ${c}">
-            ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-            <span class="index-pct">${sign}${data.change_pct}%</span>
+            <div class="index-delta ${c}">
+              ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+              <span class="index-pct">${sign}${data.change_pct}%</span>
+            </div>
           </div>
         </div>
       </div>`;
