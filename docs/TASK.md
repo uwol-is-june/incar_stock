@@ -4,6 +4,27 @@
 
 ## 진행 중
 
+- [x] [TASK-020] 지수 카드 Chart.js 긴 추세선 제거 — 카드 하단 `sparkline-wrap` 캔버스가 카드를 과도하게 크게 만들고 정보 밀도를 낮춤
+  - 작업 목록
+    - `indexCard()` HTML에서 `<div class="sparkline-wrap">` 삭제
+    - `drawSparkline()` 함수 및 호출 코드 삭제
+    - `_sparklineCharts` 인스턴스 관리 코드 제거
+    - `.sparkline-wrap` CSS 삭제
+  - 의존관계: 없음
+
+- [x] [TASK-021] 지수 카드 레이아웃 재배치 — 종가를 변동수치 바로 좌측에 배치, 미니 추세선을 종가 좌측에 배치
+  - 작업 목록
+    - `indexCard()` HTML 템플릿 재작성: `이름 | [미니추세선][종가] | 변동값+변동률` 순서
+    - `index-value-row` 레이아웃 CSS 조정
+  - 의존관계: TASK-020
+
+- [x] [TASK-022] 글로우 닷을 미니 추세선 끝점으로 이동 — 현재 `<span class="glow-dot">`이 종가 옆에 떠 있어 위치가 어색함
+  - 작업 목록
+    - HTML 템플릿에서 `<span class="glow-dot">` 제거
+    - `drawMiniSparkline()` 수정: 마지막 데이터 포인트 좌표에 `<circle>` 추가
+    - SVG circle에 `.glow-dot` CSS 클래스 적용해 기존 pulse 애니메이션 재사용
+  - 의존관계: TASK-021
+
 - [x] [TASK-019] 코스피·코스닥 지수 카드 미니 추세선 + 현재가 글로우 애니메이션 — 지수 수치 왼쪽에 짧은 스파크라인(미니 추세선)을 인라인으로 표시해 방향감을 즉시 파악할 수 있도록 하고, 현재가 숫자 옆에 은은하게 맥박치는 글로우 원형 애니메이션을 추가해 라이브 느낌을 강조
   - 작업 목록
     - 지수 카드 수치 좌측에 SVG 스파크라인 인라인 삽입 (최근 N일 종가 기반, 짧게)

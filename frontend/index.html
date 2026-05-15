@@ -244,11 +244,6 @@
       align-items: center;
       justify-content: space-between;
     }
-    .sparkline-wrap {
-      margin-top: 8px;
-      height: 34px;
-      position: relative;
-    }
     .index-name {
       font-size: 0.7rem;
       font-weight: 700;
@@ -274,6 +269,17 @@
     @keyframes glowPulseDown {
       0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.55); }
       50%       { box-shadow: 0 0 0 5px rgba(59,130,246,0); }
+    }
+    /* SVG circle용 글로우 닷 */
+    .glow-dot-svg.up   { fill: #ef4444; animation: glowPulseSvgUp   2s ease-in-out infinite; }
+    .glow-dot-svg.down { fill: #3b82f6; animation: glowPulseSvgDown 2s ease-in-out infinite; }
+    @keyframes glowPulseSvgUp {
+      0%, 100% { filter: drop-shadow(0 0 1.5px rgba(239,68,68,0.9)); }
+      50%       { filter: drop-shadow(0 0 5px   rgba(239,68,68,0.1)); }
+    }
+    @keyframes glowPulseSvgDown {
+      0%, 100% { filter: drop-shadow(0 0 1.5px rgba(59,130,246,0.9)); }
+      50%       { filter: drop-shadow(0 0 5px   rgba(59,130,246,0.1)); }
     }
 
     /* ─── 종가 + AI 의견 행 래퍼 ─── */
@@ -731,7 +737,6 @@
         align-items: center;
         justify-content: space-between;
       }
-      .sparkline-wrap { display: none !important; }
       .index-name  { color: #8899aa !important; font-size: 0.65rem; font-weight: 700; }
       .index-value { color: #fff !important; font-size: 1rem !important; font-weight: 700; }
       .index-delta { font-size: 0.78rem !important; font-weight: 600; text-align: right; }
@@ -1592,21 +1597,16 @@
   }
 
   /* ── KOSPI/KOSDAQ 지수 스트립 렌더 ── */
-  let _sparklineCharts = {};
-
   function renderIndexStrip(s) {
     const strip = document.getElementById('index-strip');
     if (!s) { strip.innerHTML = ''; return; }
-
-    // 기존 스파크라인 인스턴스 제거
-    Object.values(_sparklineCharts).forEach(c => c && c.destroy());
-    _sparklineCharts = {};
 
     function indexCard(name, data, key) {
       if (!data || data.close == null) {
         return `<div class="index-card" data-index="${key}">
           <div class="index-card-row">
-            <div><div class="index-name">${name}</div><div class="index-value" style="color:#4b5563">—</div></div>
+            <div class="index-name">${name}</div>
+            <div class="index-value" style="color:#4b5563">—</div>
           </div>
         </div>`;
       }
@@ -1614,63 +1614,20 @@
       const sign = data.change_pct >= 0 ? '+' : '';
       return `<div class="index-card" data-index="${key}">
         <div class="index-card-row">
-          <div>
-            <div class="index-name">${name}</div>
-            <div class="index-value-row">
-              <svg class="mini-spark" id="mini-spark-${key}" width="52" height="24" viewBox="0 0 52 24"></svg>
-              <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              <span class="glow-dot ${c}"></span>
-            </div>
+          <div class="index-name">${name}</div>
+          <div class="index-value-row">
+            <svg class="mini-spark" id="mini-spark-${key}" width="52" height="24" viewBox="0 0 52 24" style="overflow:visible"></svg>
+            <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </div>
           <div class="index-delta ${c}">
             ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
             <span class="index-pct">${sign}${data.change_pct}%</span>
           </div>
         </div>
-        <div class="sparkline-wrap"><canvas id="sparkline-${key}"></canvas></div>
       </div>`;
     }
 
     strip.innerHTML = indexCard('KOSPI', s.kospi, 'kospi') + indexCard('KOSDAQ', s.kosdaq, 'kosdaq');
-
-    // 스파크라인 그리기
-    function drawSparkline(canvasId, history, isUp) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas || !history || !history.length) return null;
-      const color = isUp ? '#ef4444' : '#3b82f6';
-      return new Chart(canvas, {
-        type: 'line',
-        data: {
-          labels: history.map(h => h.date),
-          datasets: [{
-            data: history.map(h => h.close),
-            borderColor: color,
-            borderWidth: 1.5,
-            pointRadius: 0,
-            tension: 0.3,
-            fill: false,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          plugins: { legend: { display: false }, tooltip: { enabled: false } },
-          scales: {
-            x: {
-              display: true,
-              grid: { display: false },
-              ticks: { display: false },
-              border: { display: true, color: 'rgba(255,255,255,0.25)' },
-            },
-            y: { display: false },
-          },
-        }
-      });
-    }
-
-    _sparklineCharts['kospi']  = drawSparkline('sparkline-kospi',  s.kospi_history,  (s.kospi?.change_pct  ?? 0) >= 0);
-    _sparklineCharts['kosdaq'] = drawSparkline('sparkline-kosdaq', s.kosdaq_history, (s.kosdaq?.change_pct ?? 0) >= 0);
 
     function drawMiniSparkline(svgId, history, isUp) {
       const el = document.getElementById(svgId);
@@ -1679,13 +1636,17 @@
       const vals = history.slice(-15).map(h => h.close);
       const min = Math.min(...vals), max = Math.max(...vals);
       const range = max - min || 1;
-      const pts = vals.map((v, i) => {
-        const x = pad + (i / (vals.length - 1)) * (w - pad * 2);
-        const y = pad + (1 - (v - min) / range) * (h - pad * 2);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      }).join(' ');
+      const coords = vals.map((v, i) => ({
+        x: pad + (i / (vals.length - 1)) * (w - pad * 2),
+        y: pad + (1 - (v - min) / range) * (h - pad * 2),
+      }));
+      const pts = coords.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+      const last = coords[coords.length - 1];
       const color = isUp ? '#ef4444' : '#3b82f6';
-      el.innerHTML = `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+      const cls   = isUp ? 'up' : 'down';
+      el.innerHTML = `
+        <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle class="glow-dot-svg ${cls}" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3"/>`;
     }
 
     drawMiniSparkline('mini-spark-kospi',  s.kospi_history,  (s.kospi?.change_pct  ?? 0) >= 0);
