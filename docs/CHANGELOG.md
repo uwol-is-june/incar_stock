@@ -9,21 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_(없음)_
+
+---
+
+## [0.3.0] - 2026-05-15
+
 ### Added
-- [TASK-022] AI 분석 탭 마크다운 렌더링 — marked.js CDN 추가, `renderAI()`에서 `marked.parse()` 적용, `.ai-text` 하위 `h3`·`strong`·`ul/li` CSS 스타일 구조화
-- [TASK-020] AI 분석 탭 신설 — 주가 차트 탭 우측에 "AI 분석" 탭 추가, market_summary·comment 마크다운 카드 표시
-- [TASK-019] Gemini AI 분석 백엔드 연동 — analyzer.py를 Claude(유료)→Gemini 2.5 Flash Lite(무료)로 교체, 투자자·거래량·지수 데이터 프롬프트에 포함
-- [TASK-029] `equity`(자본총액) 필드 수집 및 종목 정보 탭 표시 — `BPS × 상장주식수`로 계산, UI에서 조 단위 포맷으로 표시
+- [TASK-019] 코스피·코스닥 지수 카드 미니 추세선 + 글로우 닷 — 15일 SVG 스파크라인 인라인 삽입, 종가 끝점에 `glow-dot-svg` pulse 애니메이션 추가
+- [TASK-023] 대시보드 상단 UI 2-tier 위계 구조 개편 — 인카 종가 + AI 한 줄 요약을 Hero 카드로 통합 (상단), 코스피·코스닥을 보조 행으로 재배치 (하단)
+- Vercel Cron → GitHub Actions `workflow_dispatch` 자동 트리거 — `vercel.json`에 `10 7 * * 1-5` cron 설정, `/api/trigger-collect` 엔드포인트 추가
 
 ### Changed
-- [TASK-021] AI 종목 분석 코멘트 상세화 — 프롬프트를 5개 항목(가격/등락·투자자·거래량·시장대비·종합) 마크다운 구조로 변경, `max_output_tokens` 1024→2048 상향
-- [TASK-029] BPS 수집 방식 변경 — `round(close / PBR)` 역산에서 pykrx `get_market_fundamental()` BPS 컬럼 직접 조회로 전환
-- [TASK-029] `_fetch_dart_financials()` → `_fetch_dart_fs()`로 함수 확장 — 재무상태표(BS) `fs['bs']`에서 자본총계 추출 로직 추가 (기존 IS 당기순이익 로직 유지)
-- AI 뱃지 워딩 변경 — "Gemini AI" → "AI"
+- [TASK-018] 종가 배너 + AI 종합 의견 레이아웃 통합 — `price-banner` 좌측 컴팩트 묶음 + AI 의견 우측 flex row 배치 (이후 TASK-023에서 Hero 카드로 재편)
+- [TASK-020] 지수 카드 Chart.js 긴 추세선 제거 — `sparkline-wrap` 캔버스 삭제, `drawSparkline()` 함수 제거
+- [TASK-021] 지수 카드 레이아웃 재배치 — `이름 | 미니추세선·종가 | 변동값+변동률` 순서로 재구성
+- [TASK-022] 글로우 닷 위치 이동 — `<span class="glow-dot">` 제거 → SVG `<circle>` (추세선 끝점)으로 이동
 
 ### Fixed
-- AI 분석 프롬프트 JSON 파싱 오류 수정 — JSON 템플릿 안에 이스케이프되지 않은 줄바꿈이 포함돼 `json.loads()` 실패하던 문제. JSON 예시를 placeholder로 단순화하고 형식 지시를 블록 밖으로 분리
-- [TASK-028] 시총 순위 항상 None 반환 수정 — `_fetch_market_cap_ranking()`이 KOSPI로 조회했으나 WATCHLIST 종목은 KOSDAQ 종목. `market="KOSDAQ"`으로 수정, 프론트엔드 뱃지도 KOSDAQ으로 변경
+- GitHub Actions `schedule:` 트리거 피크 시간대 2~3시간 지연 — `schedule:` 제거 후 Vercel Cron + `workflow_dispatch` 방식으로 전환
+- Vercel API 핸들러 GET/POST 버그 — Vercel Cron이 GET 요청을 보내는데 `POST`만 허용하던 405 오류 수정, `CRON_SECRET` 인증으로 대체
+- AI 종합의견 정규식 버그 — `comment` 필드에서 "종합 의견" 섹션 추출 실패 수정
+- 코스피/코스닥 스파크라인 히스토리 누락 — 히스토리 데이터 미포함 시 graceful fallback 추가
 
 ---
 
@@ -37,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [TASK-022] 당기순이익(TTM) 카드 추가 (`net_income_ttm`)
 - [TASK-023] DART API 키 환경변수 추가 (`DART_API_KEY`)
 - [TASK-024] DART 분기 재무제표 수집 모듈 구현 (`_fetch_dart_financials`) — Q4=연간-9M 계산 포함
+- Gemini AI 분석 백엔드 연동 — `analyzer.py`를 Claude(유료)→Gemini 2.5 Flash Lite(무료)로 교체, 투자자·거래량·지수 데이터 프롬프트에 포함
+- AI 분석 탭 신설 — 주가 차트 탭 우측에 "AI 분석" 탭 추가, `market_summary`·`comment` 마크다운 카드 표시
+- AI 분석 탭 마크다운 렌더링 — marked.js CDN 추가, `renderAI()`에서 `marked.parse()` 적용
+- `equity`(자본총액) 필드 수집 및 종목 정보 탭 표시 — `BPS × 상장주식수`로 계산, UI에서 조 단위 포맷으로 표시
 - KOSPI/KOSDAQ 지수 스트립 (대시보드 상단)
 - 4탭 대시보드 — 시세현황·종목정보·투자자동향·주가차트
 - 투자자별 순매수 동향 (기관·개인·외국인 + 세부 기관 7개)
@@ -45,13 +56,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OHLCV 상세 필드 수집 (시가·고가·저가·거래량·거래대금·52주고저)
 
 ### Changed
-- [TASK-017] 종가 배너 개선 — data_date 기준일 표시, is_fallback 뱃지 적용
-- [TASK-019] 장중/장마감 수집 정책 확정 — KST 16:00 기준 `_market_closed()`, 장중 is_fallback=True
+- 종가 배너 개선 — `data_date` 기준일 표시, `is_fallback` 뱃지 적용
+- 장중/장마감 수집 정책 확정 — KST 16:00 기준 `_market_closed()`, 장중 `is_fallback=True`
+- AI 종목 분석 코멘트 상세화 — 프롬프트를 5개 항목 마크다운 구조로 변경, `max_output_tokens` 1024→2048 상향
+- BPS 수집 방식 변경 — `round(close / PBR)` 역산에서 pykrx `get_market_fundamental()` BPS 컬럼 직접 조회로 전환
+- `_fetch_dart_financials()` → `_fetch_dart_fs()`로 함수 확장 — 재무상태표(BS) 자본총계 추출 로직 추가
+- AI 뱃지 워딩 변경 — "Gemini AI" → "AI"
 - API 경로 변경: `POST /api/report/generate` → `POST /api/generate`, `GET /api/report/list` → `GET /api/dates`
 - requirements.txt: `uvicorn` → `uvicorn[standard]`, `apscheduler` 추가
 
+### Fixed
+- AI 분석 프롬프트 JSON 파싱 오류 수정 — JSON 예시를 placeholder로 단순화
+- 시총 순위 항상 None 반환 수정 — `market="KOSPI"` → `"KOSDAQ"` 수정
+
 ### Removed
-- [TASK-018] 7일 현황 테이블 행의 "전일" 뱃지 제거 (배너에만 표시)
+- 7일 현황 테이블 행의 "전일" 뱃지 제거 (배너에만 표시)
 - DPS 카드 제거
 
 ---

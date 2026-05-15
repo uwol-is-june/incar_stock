@@ -8,13 +8,13 @@
 | 16:00 KST 이후 (장 마감 후) | 당일 확정 종가 사용 |
 | 비영업일 (주말/공휴일) | 직전 영업일 데이터 사용 |
 
-> 데이터 자동 수집 시각: **매 영업일 16:10 KST** (APScheduler)
+> 데이터 자동 수집 시각: **매 영업일 16:10 KST** (Vercel Cron → GitHub Actions workflow_dispatch)
 
 ---
 
 ## 상단 고정 영역
 
-### 종가 배너 (종목명 · 기준일 · 현재 종가 · 전일대비 · 등락률)
+### Hero 카드 (인카 종가 + AI 종합 의견)
 
 | 항목 | 출처 | 기준 |
 |------|------|------|
@@ -23,6 +23,7 @@
 | 전일대비 (change) | 직접 계산 `close - prev_close` | — |
 | 등락률 (change_pct) | 직접 계산 `change / prev_close × 100` | — |
 | 기준일 (data_date) | 수집 시점 기준 최신 영업일 | YYYY-MM-DD |
+| AI 종합 의견 | Gemini AI `comment` 필드 `### 종합 의견` 섹션 | 당일 수집 시 생성 |
 
 ### KOSPI / KOSDAQ 지수 카드
 
@@ -31,6 +32,7 @@
 | 지수 종가 (close) | pykrx `get_index_ohlcv_by_date()` | 영업일 종가 기준 |
 | 전일대비 (change) | pykrx 동일 함수 반환값 | — |
 | 등락률 (change_pct) | pykrx 동일 함수 반환값 | — |
+| 미니 스파크라인 | pykrx 최근 15일 종가 히스토리 | `kospi.history` / `kosdaq.history` 배열 |
 
 > 코드: KOSPI = `0001`, KOSDAQ = `1001` (KRX 지수 코드)
 
@@ -151,6 +153,7 @@
 
 > `comment` 필드는 마크다운 형식 문자열. 프론트엔드에서 marked.js로 렌더링.
 > Gemini API 호출 실패 시 빈 문자열 저장, 분석 없음 메시지 표시.
+> Hero 카드 상단에는 `### 종합 의견` 섹션만 한 줄 요약으로 표시.
 
 ---
 
@@ -158,7 +161,7 @@
 
 | 구분 | 수집 시각 | 비고 |
 |------|-----------|------|
-| 정기 자동 수집 | 매 영업일 16:10 KST | GitHub Actions cron |
+| 정기 자동 수집 | 매 영업일 16:10 KST | Vercel Cron → GitHub Actions workflow_dispatch |
 | 수동 수집 | GitHub Actions workflow_dispatch | Actions 탭에서 Run workflow |
 | 과거 데이터 백필 | 로컬 서버 시작 시 | 최근 10영업일 내 누락 날짜 자동 보완 |
 | AI 분석 재실행 | 관리자 탭 버튼 (로컬 서버 전용) | 기존 리포트 AI 분석 덮어씀 |

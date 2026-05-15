@@ -232,30 +232,28 @@
       background: #0d1b2a;
       color: #fff;
       border-radius: 10px;
-      padding: 12px 18px 10px;
+      padding: 14px 18px 16px;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       cursor: pointer;
       transition: opacity 0.15s;
     }
     .index-card:hover { opacity: 0.82; }
-    .index-card-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    .index-card-row { display: flex; align-items: center; justify-content: space-between; }
     .index-name {
       font-size: 0.7rem;
       font-weight: 700;
       color: #8899aa;
-      margin-bottom: 3px;
     }
-    .index-value { font-size: 1.2rem; font-weight: 700; }
-    .index-delta { font-size: 0.82rem; font-weight: 600; text-align: right; }
-    .index-delta .index-pct { font-size: 0.72rem; color: #a0aec0; display: block; margin-top: 1px; }
+    .index-value { font-size: 1.25rem; font-weight: 700; text-align: center; }
+    .index-delta { font-size: 0.82rem; font-weight: 600; text-align: center; }
+    .index-delta .index-pct { font-size: 0.72rem; color: #a0aec0; display: block; margin-top: 1px; text-align: center; }
     .index-value-row { display: flex; align-items: center; gap: 5px; }
     .index-right { display: flex; align-items: center; gap: 8px; }
-    .mini-spark { flex-shrink: 0; display: block; }
+    .mini-spark { flex-shrink: 0; display: block; margin-top: 4px; }
     .glow-dot {
       width: 7px; height: 7px;
       border-radius: 50%;
@@ -523,16 +521,6 @@
       color: #94a3b8;
       margin-top: -8px;
     }
-    .company-info-grid { display: grid; grid-template-columns: 72px 1fr; gap: 10px 12px; padding: 16px 20px 20px; align-items: start; }
-    .ci-label { font-size: 0.78rem; font-weight: 700; color: #6b7280; }
-    .ci-value { font-size: 0.88rem; color: #111827; word-break: keep-all; }
-    .company-history-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #9ca3af; padding: 0 20px 10px; }
-    .company-history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .company-history-table th { background: #f8fafc; color: #6b7280; font-weight: 600; padding: 6px 20px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-    .company-history-table td { padding: 6px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: top; text-align: left; }
-    .company-history-table tr:last-child td { border-bottom: none; }
-    .ch-arrow { color: #9ca3af; margin: 0 4px; }
-
     /* ─── PDF 출력 버튼 ─── */
     #btn-print-pdf {
       padding: 6px 12px;
@@ -975,7 +963,6 @@
     <button class="tab-btn" data-tab="info">종목 정보</button>
     <button class="tab-btn" data-tab="investor">투자자 동향</button>
     <button class="tab-btn" data-tab="chart">주가 차트</button>
-    <button class="tab-btn" data-tab="company">기업 개요</button>
     <button class="tab-btn" data-tab="ai">AI 분석</button>
     <div class="admin-tabs">
       <button class="tab-btn admin" data-tab="admin">관리자</button>
@@ -1262,13 +1249,7 @@
     </div>
   </div>
 
-  <!-- 탭 5: 기업 개요 -->
-  <div id="tab-company" class="tab-panel">
-    <div class="print-section-header">기업 개요</div>
-    <div id="company-info-wrap"></div>
-  </div>
-
-  <!-- 탭 6: AI 분석 -->
+  <!-- 탭 5: AI 분석 -->
   <div id="tab-ai" class="tab-panel">
     <div id="ai-wrap"></div>
   </div>
@@ -1475,50 +1456,6 @@
       </div>`;
   }
 
-  /* ── 탭2: 기업 개요 (주요변경이력) ── */
-  function _buildCompanyInfoHtml(info) {
-    const summaryFields = [
-      ['상호', info['상호']],
-      ['업종', info['업종']],
-      ['액면가', info['액면가'] != null ? info['액면가'].toLocaleString('ko-KR') + '원' : null],
-      ['대표이사', info['대표이사']],
-    ];
-    const summaryHtml = summaryFields
-      .filter(([, v]) => v != null)
-      .map(([k, v]) => `<div class="ci-label">${k}</div><div class="ci-value">${v}</div>`)
-      .join('');
-
-    const history = [...(info['변경이력'] ?? [])].reverse();
-    let historyHtml = '';
-    if (history.length) {
-      const rows = history.flatMap(h =>
-        h.changes.map((c, i) => `<tr>
-          <td>${i === 0 ? h.date : ''}</td>
-          <td>${c['구분']}</td>
-          <td>${c['변경전'] ?? '—'}<span class="ch-arrow">→</span>${c['변경후'] ?? '—'}</td>
-        </tr>`)
-      ).join('');
-      historyHtml = `
-        <div class="company-history-title">주요 변경 이력</div>
-        <div class="table-wrap">
-          <table class="company-history-table">
-            <thead><tr><th>날짜</th><th>구분</th><th>변경 내용</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>`;
-    }
-    return { summaryHtml, historyHtml };
-  }
-
-  function renderCompanyInfo(s) {
-    const wrap = document.getElementById('company-info-wrap');
-    if (!wrap) return;
-    const info = s?.company_info;
-    if (!info || Object.keys(info).length === 0) { wrap.innerHTML = ''; return; }
-    const { summaryHtml, historyHtml } = _buildCompanyInfoHtml(info);
-    wrap.innerHTML = `<div class="card"><div class="card-title">기업 개요</div><div class="company-info-grid">${summaryHtml}</div>${historyHtml}</div>`;
-  }
-
   /* ── 탭2: 종목 정보 KPI ── */
   function renderInfoMetrics(s) {
     const grid = document.getElementById('info-grid');
@@ -1594,26 +1531,20 @@
     function indexCard(name, data, key) {
       if (!data || data.close == null) {
         return `<div class="index-card" data-index="${key}">
-          <div class="index-card-row">
-            <div class="index-name">${name}</div>
-            <div class="index-value" style="color:#4b5563">—</div>
-          </div>
+          <div class="index-name">${name}</div>
+          <div class="index-value" style="color:#4b5563">—</div>
         </div>`;
       }
       const c = data.change_pct >= 0 ? 'up' : 'down';
       const sign = data.change_pct >= 0 ? '+' : '';
       return `<div class="index-card" data-index="${key}">
-        <div class="index-card-row">
-          <div class="index-name">${name}</div>
-          <div class="index-right">
-            <svg class="mini-spark" id="mini-spark-${key}" width="52" height="24" viewBox="0 0 52 24" style="overflow:visible"></svg>
-            <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-            <div class="index-delta ${c}">
-              ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-              <span class="index-pct">${sign}${data.change_pct}%</span>
-            </div>
-          </div>
+        <div class="index-name">${name}</div>
+        <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+        <div class="index-delta ${c}">
+          ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+          <span class="index-pct">${sign}${data.change_pct}%</span>
         </div>
+        <svg class="mini-spark" id="mini-spark-${key}" width="52" height="24" viewBox="0 0 52 24" style="overflow:visible"></svg>
       </div>`;
     }
 
@@ -1879,7 +1810,23 @@
       options: {
         responsive: true,
         animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const d = ctx.raw;
+                if (!d || d.o === undefined) return ctx.formattedValue;
+                return [
+                  `시가: ${d.o.toLocaleString('ko-KR')}원`,
+                  `고가: ${d.h.toLocaleString('ko-KR')}원`,
+                  `저가: ${d.l.toLocaleString('ko-KR')}원`,
+                  `종가: ${d.c.toLocaleString('ko-KR')}원`,
+                ];
+              }
+            }
+          }
+        },
         scales: {
           x: {
             type: 'category',
@@ -1909,7 +1856,14 @@
       options: {
         responsive: true,
         animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.parsed.y.toLocaleString('ko-KR') + '주'
+            }
+          }
+        },
         scales: {
           x: { ticks: { maxRotation: 0 } },
           y: { ticks: { callback: v => v.toLocaleString('ko-KR') } }
@@ -2181,7 +2135,6 @@
     renderHeroCard(stock, selected);
     renderIndexStrip(stock);
     renderPriceMetrics(stock);
-    renderCompanyInfo(stock);
     renderInfoMetrics(stock);
     renderRows(stock?.ohlcv_7d ?? []);
     renderInvestor(stock, allReports);

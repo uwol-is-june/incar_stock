@@ -2,8 +2,8 @@
 
 ## 1. 시스템 개요
 
-GitHub Actions가 매 거래일 KST 16:10에 `run_collect.py`를 실행한다.
-`collector.py`가 pykrx로 인카금융서비스(211050) 주가·펀더멘털·투자자 동향을 수집하고,
+Vercel Cron이 매 거래일 KST 16:10에 GitHub Actions `workflow_dispatch`를 트리거한다.
+`run_collect.py`가 pykrx로 인카금융서비스(211050) 주가·펀더멘털·투자자 동향과 KOSPI/KOSDAQ 지수를 수집하고,
 `analyzer.py`가 Gemini AI로 시장 요약과 종목 분석 코멘트를 생성한다.
 `reporter.py`가 결과를 날짜별 JSON 파일로 저장한 뒤 `index.json`을 갱신한다.
 변경된 `reports/` 파일이 레포에 커밋·푸시되면 Vercel이 자동으로 재배포하고,
@@ -14,7 +14,13 @@ GitHub Actions가 매 거래일 KST 16:10에 `run_collect.py`를 실행한다.
 ## 2. 컴포넌트 구조
 
 ```
-[GitHub Actions - cron: 평일 16:10 KST]
+[Vercel Cron - 평일 16:10 KST]
+        │ GET /api/trigger-collect
+        ▼
+[ api/trigger-collect.js ]  ← GitHub Actions workflow_dispatch 호출
+        │
+        ▼
+[GitHub Actions - workflow_dispatch]
         │
         ▼
 [ run_collect.py ]  ← CLI 진입점 (영업일 체크 포함)
@@ -42,42 +48,46 @@ GitHub Actions가 매 거래일 KST 16:10에 `run_collect.py`를 실행한다.
 | 컴포넌트 | 역할 | 위치 |
 |----------|------|------|
 | run_collect.py | CLI 진입점, 영업일 체크, collect→analyze→save→prune 순서 실행 | `backend/run_collect.py` |
-| run_backfill_ai.py | AI 분석 강제 재분석 스크립트 (기존 리포트 전체 덮어씀) | `backend/run_backfill_ai.py` *(BACK-010 예정)* |
+| run_backfill_ai.py | AI 분석 강제 재분석 스크립트 (기존 리포트 전체 덮어씀) | `backend/run_backfill_ai.py` |
 | collector.py | pykrx 수집 (OHLCV·펀더멘털·투자자·지수·52주), DART 재무, fallback 처리 | `backend/collector.py` |
 | analyzer.py | Gemini 2.5 Flash Lite AI 분석 (시장 요약 + 마크다운 5항목 종목 코멘트) | `backend/analyzer.py` |
 | reporter.py | JSON 저장/조회/목록/index.json 갱신 | `backend/reporter.py` |
 | config.py | WATCHLIST, REPORT_DIR, API 키 설정 | `backend/config.py` |
 | main.py | FastAPI 서버 (로컬 개발·관리자 기능용) — 자동 백필, AI 수동 업데이트 엔드포인트 포함 | `backend/main.py` |
 | index.html | 인라인 CSS 6탭 대시보드 (시세현황·종목정보·투자자동향·주가차트·AI분석·관리자) | `frontend/index.html` |
-| daily-collect.yml | GitHub Actions 워크플로우 — 매일 자동 수집 + workflow_dispatch | `.github/workflows/daily-collect.yml` |
-| backfill-ai.yml | GitHub Actions 워크플로우 — AI 재분석 수동 트리거 *(BACK-010 예정)* | `.github/workflows/backfill-ai.yml` |
-| vercel.json | Vercel 라우팅 설정 (`/` → `frontend/index.html`) | `vercel.json` |
+| trigger-collect.js | Vercel Cron → GitHub Actions workflow_dispatch 브리지 | `api/trigger-collect.js` |
+| trigger-ai-update.js | 프론트엔드 수동 버튼 → GitHub Actions backfill-ai 트리거 | `api/trigger-ai-update.js` |
+| daily-collect.yml | GitHub Actions 워크플로우 — workflow_dispatch로 수집 실행 | `.github/workflows/daily-collect.yml` |
+| backfill-ai.yml | GitHub Actions 워크플로우 — AI 재분석 수동 트리거 | `.github/workflows/backfill-ai.yml` |
+| vercel.json | Vercel 라우팅 + Cron 설정 (`/api/trigger-collect` 평일 16:10 KST) | `vercel.json` |
 
 ---
 
 ## 3. 데이터 흐름
 
 ```
-[GitHub Actions - 평일 16:10 KST / workflow_dispatch]
-  └─ run_collect.py
-       ├─ is_business_day() 체크 → 비영업일이면 종료
-       ├─ collector.collect()
-       │    ├─ pykrx 365일치 OHLCV → 52주 고저 계산
-       │    ├─ 장중(16:00 전)이면 전 거래일 종가 사용 (is_fallback=True)
-       │    └─ 보조 API (best-effort):
-       │         ├─ get_market_fundamental      → PER, PBR, EPS, BPS
-       │         ├─ get_market_cap_by_date      → 시가총액, 상장주식수, 거래대금
-       │         ├─ get_exhaustion_rates_*      → 외국인 보유비율, 한도소진율
-       │         ├─ get_market_cap_by_ticker    → KOSDAQ 시총 순위
-       │         ├─ get_market_trading_volume_* → 투자자별 매수·매도·순매수
-       │         ├─ get_index_ohlcv_by_date     → KOSPI/KOSDAQ 지수
-       │         └─ dart-fss                   → 분기 당기순이익 TTM + 자본총액
-       ├─ analyzer.analyze(stocks)
-       │    └─ Gemini 2.5 Flash Lite API 호출
-       │         ├─ market_summary: 시장 전체 한줄 요약
-       │         └─ stocks[ticker].comment: 마크다운 5항목 종목 분석
-       ├─ reporter.save(date, enriched, market_summary) → YYYY-MM-DD.json + index.json
-       └─ reporter.prune(5)                             → 최신 5개만 보관
+[Vercel Cron - 평일 16:10 KST]
+  └─ GET /api/trigger-collect
+       └─ GitHub API workflow_dispatch → daily-collect.yml
+            └─ run_collect.py
+                 ├─ is_business_day() 체크 → 비영업일이면 종료
+                 ├─ collector.collect()
+                 │    ├─ pykrx 365일치 OHLCV → 52주 고저 계산
+                 │    ├─ 장중(16:00 전)이면 전 거래일 종가 사용 (is_fallback=True)
+                 │    └─ 보조 API (best-effort):
+                 │         ├─ get_market_fundamental      → PER, PBR, EPS, BPS
+                 │         ├─ get_market_cap_by_date      → 시가총액, 상장주식수, 거래대금
+                 │         ├─ get_exhaustion_rates_*      → 외국인 보유비율, 한도소진율
+                 │         ├─ get_market_cap_by_ticker    → KOSDAQ 시총 순위
+                 │         ├─ get_market_trading_volume_* → 투자자별 매수·매도·순매수
+                 │         ├─ get_index_ohlcv_by_date     → KOSPI/KOSDAQ 지수 + 15일 히스토리
+                 │         └─ dart-fss                   → 분기 당기순이익 TTM + 자본총액
+                 ├─ analyzer.analyze(stocks)
+                 │    └─ Gemini 2.5 Flash Lite API 호출
+                 │         ├─ market_summary: 시장 전체 한줄 요약
+                 │         └─ stocks[ticker].comment: 마크다운 5항목 종목 분석
+                 ├─ reporter.save(date, enriched, market_summary) → YYYY-MM-DD.json + index.json
+                 └─ reporter.prune(5)                             → 최신 5개만 보관
 
 [Vercel]
   └─ GitHub push 감지 → 자동 재배포
@@ -86,6 +96,8 @@ GitHub Actions가 매 거래일 KST 16:10에 `run_collect.py`를 실행한다.
   └─ index.html
        ├─ ./reports/index.json     → 날짜 목록 로드
        └─ ./reports/${date}.json   → 리포트 데이터 로드
+            └─ 상단 Hero 카드: 인카 종가 + AI 한 줄 요약 (2rem 강조)
+            └─ 상단 보조 행: KOSPI/KOSDAQ 지수 카드 (미니 스파크라인 + 글로우 닷)
             └─ 탭1 시세현황: KPI 카드 + 7일 OHLCV 테이블
             └─ 탭2 종목정보: 52주고저·시가총액·PER·PBR·EPS·BPS·TTM·외국인소진율·시총순위
             └─ 탭3 투자자동향: 5거래일 순매수 트렌드 + 기관세부 + 매수매도 상세
@@ -125,8 +137,14 @@ GitHub Actions가 매 거래일 KST 16:10에 `run_collect.py`를 실행한다.
       "foreign_pct": 12.5,
       "exhaustion_rate": 25.3,
       "cap_rank": 42,
-      "kospi": { "close": 2680.12, "prev_close": 2650.33, "change": 29.79, "change_pct": 1.12 },
-      "kosdaq": { "close": 850.45, "prev_close": 843.20, "change": 7.25, "change_pct": 0.86 },
+      "kospi": {
+        "close": 2680.12, "prev_close": 2650.33, "change": 29.79, "change_pct": 1.12,
+        "history": [{ "date": "2026-05-12", "close": 2680.12 }]
+      },
+      "kosdaq": {
+        "close": 850.45, "prev_close": 843.20, "change": 7.25, "change_pct": 0.86,
+        "history": [{ "date": "2026-05-12", "close": 850.45 }]
+      },
       "inst_buy": 12000, "inst_sell": 9000, "inst_net": 3000,
       "indiv_buy": 50000, "indiv_sell": 55000, "indiv_net": -5000,
       "foreign_buy": 8000, "foreign_sell": 6000, "foreign_net": 2000,
@@ -147,6 +165,7 @@ GitHub Actions가 매 거래일 KST 16:10에 `run_collect.py`를 실행한다.
 
 > 투자자 동향 필드(`inst_*`, `indiv_*`, `foreign_*`)는 장 마감 후에만 제공된다.
 > `comment` 필드는 Gemini AI가 생성하는 마크다운 텍스트 (5개 ### 헤더 구조).
+> `kospi.history` / `kosdaq.history`는 최근 15일 종가 배열 (스파크라인용).
 
 ---
 
@@ -161,9 +180,10 @@ GitHub Actions가 매 거래일 KST 16:10에 `run_collect.py`를 실행한다.
 - **이유**: 서버 운영 비용 없음, 항상 최신 데이터 보장, 별도 서버 프로세스 불필요
 - **트레이드오프**: 관리자 기능(AI 수동 업데이트 등)은 로컬 서버(`main.py`) 실행 또는 GitHub Actions workflow_dispatch로만 실행 가능
 
-### ADR-003: 자동화 — GitHub Actions cron 채택 (APScheduler 대신)
-- **결정**: `.github/workflows/daily-collect.yml`에서 cron으로 KST 16:10 실행
-- **이유**: 서버 상시 실행 불필요, 실행 로그 GitHub에서 확인 가능, workflow_dispatch로 수동 실행 지원
+### ADR-003: 자동화 — Vercel Cron + workflow_dispatch 채택 (GitHub Actions schedule 대신)
+- **결정**: `vercel.json`에 cron 설정 → `api/trigger-collect.js`가 GitHub Actions `workflow_dispatch` 호출
+- **이유**: GitHub Actions `schedule:` 트리거는 피크 시간대에 2~3시간 지연 발생. Vercel Cron은 정시 실행 보장
+- **인증**: Vercel이 cron 요청 시 `Authorization: Bearer <CRON_SECRET>` 헤더 자동 주입
 
 ### ADR-004: 전일대비 계산 — 직접 계산 방식
 - **결정**: pykrx 365일치 조회 후 `curr_close - prev_close` 직접 계산
@@ -184,4 +204,5 @@ GitHub Actions가 매 거래일 KST 16:10에 `run_collect.py`를 실행한다.
 | DART (금융감독원) | 분기 재무제표 수집 (TTM, 자본총액) | DART_API_KEY 환경변수 |
 | Gemini AI (Google) | 시장 요약 + 종목 분석 코멘트 생성 | GEMINI_API_KEY 환경변수 |
 | Naver Finance | 10년 주가 차트 이미지 | 없음 (img src 직접 참조) |
-| Vercel | 정적 파일 호스팅 | GitHub 레포 연동 |
+| Vercel | 정적 파일 호스팅 + Cron 트리거 | GitHub 레포 연동, CRON_SECRET/GITHUB_TOKEN 환경변수 |
+| GitHub Actions | 수집 워크플로우 실행 | GITHUB_TOKEN (Vercel 환경변수) |
