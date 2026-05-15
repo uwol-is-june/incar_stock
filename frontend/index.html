@@ -2057,14 +2057,37 @@
 
   document.getElementById('btn-print-pdf').addEventListener('click', () => {
     pdfModal.style.display = 'flex';
+
+    // 차트 탭이 비활성이고 데이터가 있으면 모달이 열리는 동안 미리 렌더링 (hidden 상태로)
+    const chartTabEl = document.getElementById('tab-chart');
+    if (!chartTabEl.classList.contains('active') && _printOhlcv7d) {
+      chartTabEl.style.display = 'block';
+      chartTabEl.style.visibility = 'hidden';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        renderChart(_printOhlcv7d, true);
+      }));
+    }
   });
 
   document.getElementById('pdf-cancel').addEventListener('click', () => {
+    // 사전 렌더링된 차트 탭 상태 복원
+    const chartTabEl = document.getElementById('tab-chart');
+    if (chartTabEl.style.visibility === 'hidden') {
+      chartTabEl.style.display = '';
+      chartTabEl.style.visibility = '';
+    }
     pdfModal.style.display = 'none';
   });
 
   pdfModal.addEventListener('click', e => {
-    if (e.target === pdfModal) pdfModal.style.display = 'none';
+    if (e.target !== pdfModal) return;
+    // 사전 렌더링된 차트 탭 상태 복원
+    const chartTabEl = document.getElementById('tab-chart');
+    if (chartTabEl.style.visibility === 'hidden') {
+      chartTabEl.style.display = '';
+      chartTabEl.style.visibility = '';
+    }
+    pdfModal.style.display = 'none';
   });
 
   document.getElementById('pdf-confirm').addEventListener('click', () => {
@@ -2074,27 +2097,39 @@
     selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.add('print-include'));
 
     const chartTabEl = document.getElementById('tab-chart');
-    const needsChartInit = selected.includes('chart') && !chartTabEl.classList.contains('active');
+    const chartPreRendered = selected.includes('chart')
+      && chartTabEl.style.display === 'block'
+      && chartTabEl.style.visibility === 'hidden';
+    const needsChartInit = selected.includes('chart')
+      && !chartTabEl.classList.contains('active')
+      && !chartPreRendered;
 
-    function executePrint() {
-      window.print();
+    function doAfterPrint() {
       selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.remove('print-include'));
     }
 
-    if (needsChartInit) {
+    if (chartPreRendered) {
+      // 이미 사전 렌더링됨: visibility만 복원 후 바로 인쇄
+      chartTabEl.style.visibility = '';
+      window.print();
+      chartTabEl.style.display = '';
+      doAfterPrint();
+    } else if (needsChartInit) {
+      // 폴백: 모달을 매우 빠르게 닫은 경우 (사전 렌더링 미완료)
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
       requestAnimationFrame(() => {
         renderChart(_printOhlcv7d, true);
-        requestAnimationFrame(() => {
+        setTimeout(() => {
           chartTabEl.style.visibility = '';
           window.print();
           chartTabEl.style.display = '';
-          selected.forEach(tab => document.getElementById('tab-' + tab)?.classList.remove('print-include'));
-        });
+          doAfterPrint();
+        }, 300);
       });
     } else {
-      executePrint();
+      window.print();
+      doAfterPrint();
     }
   });
 
