@@ -103,6 +103,20 @@ def _fetch_index(index_code: str, start_ymd: str, end_ymd: str):
         return None
 
 
+def _index_history(df, use_prev_row: bool = False) -> list:
+    """지수 DataFrame → [{date, close}, ...] 오름차순 (구→최신). 실패 시 빈 리스트."""
+    try:
+        if df is None or df.empty:
+            return []
+        rows = df.iloc[:-1] if use_prev_row else df
+        return [
+            {"date": idx.date().isoformat(), "close": round(float(row["종가"]), 2)}
+            for idx, row in rows.iterrows()
+        ]
+    except Exception:
+        return []
+
+
 def _index_snapshot(df, use_prev_row: bool = False) -> dict:
     """지수 DataFrame → {close, prev_close, change, change_pct}. 실패 시 전부 None."""
     try:
@@ -441,10 +455,10 @@ def collect() -> dict[str, dict]:
         df_inv       = _fetch_investor_trading(ticker, data_date_ymd)
         company_info = _fetch_company_info(ticker)
 
-        # KOSPI/KOSDAQ 지수 (5일치 — 전일 대비 변동 계산용)
-        s5, e5 = _date_range(5)
-        df_kospi  = _fetch_index("1001", s5, e5)
-        df_kosdaq = _fetch_index("2001", s5, e5)
+        # KOSPI/KOSDAQ 지수 (30일치 — 스파크라인·히스토리·전일 대비 계산 공용)
+        s30, e30 = _date_range(30)
+        df_kospi  = _fetch_index("1001", s30, e30)
+        df_kosdaq = _fetch_index("2001", s30, e30)
 
         # 시총 순위: 장 마감 후 확정 데이터만 유효 — 장중엔 KRX가 당일 데이터 미완성
         cap_rank = _fetch_market_cap_ranking(ticker, data_date_ymd) if closed else None
@@ -483,8 +497,10 @@ def collect() -> dict[str, dict]:
             "exhaustion_rate": _safe_float(_latest(df_foreign, "한도소진율")),
             "cap_rank":        cap_rank,
             # 지수 (None 허용)
-            "kospi":  _index_snapshot(df_kospi,  use_prev_row=is_fallback),
-            "kosdaq": _index_snapshot(df_kosdaq, use_prev_row=is_fallback),
+            "kospi":          _index_snapshot(df_kospi,  use_prev_row=is_fallback),
+            "kosdaq":         _index_snapshot(df_kosdaq, use_prev_row=is_fallback),
+            "kospi_history":  _index_history(df_kospi,  use_prev_row=is_fallback),
+            "kosdaq_history": _index_history(df_kosdaq, use_prev_row=is_fallback),
             # 투자자별 동향 (None 허용 — 장 마감 후 제공)
             "inst_buy":     _investor_val(df_inv, "기관합계",  "매수"),
             "inst_sell":    _investor_val(df_inv, "기관합계",  "매도"),
