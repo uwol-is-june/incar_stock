@@ -2189,7 +2189,7 @@
     const comment = report?.stocks?.[TICKER]?.comment;
     if (!comment) { el.innerHTML = ''; return; }
 
-    const match = comment.match(/###\s*종합 의견:?\s*\n([\s\S]*?)(?=\n###|$)/);
+    const match = comment.match(/###\s*종합 의견:?\s*([\s\S]*?)(?=\n###|$)/);
     const text = match ? match[1].trim().replace(/^[-*]\s*/, '') : null;
     if (!text) { el.innerHTML = ''; return; }
 
