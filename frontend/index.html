@@ -1174,13 +1174,9 @@
     btn.textContent = '업데이트 중...';
     result.textContent = '';
     try {
-      const res = await fetch('/api/backfill-ai', { method: 'POST' });
+      const res = await fetch('/api/trigger-ai-update', { method: 'POST' });
       if (res.ok) {
-        const data = await res.json();
-        const updCount = data.updated?.length ?? 0;
-        result.innerHTML = updCount > 0
-          ? `<span style="color:#16a34a">✅ ${updCount}건 업데이트 완료</span>`
-          : `<span style="color:#6b7280">업데이트할 리포트 없음 (이미 모두 AI 분석 있음)</span>`;
+        result.innerHTML = '<span style="color:#16a34a">✅ GitHub Actions 실행 시작됨, 수 분 후 반영</span>';
       } else {
         result.innerHTML = '<span style="color:#dc2626">❌ 업데이트 실패</span>';
       }

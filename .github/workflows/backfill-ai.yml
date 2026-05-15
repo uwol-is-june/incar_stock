@@ -1,10 +1,10 @@
-name: Daily Stock Collect
+name: Backfill AI Analysis
 
 on:
   workflow_dispatch:
 
 jobs:
-  collect:
+  backfill:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,20 +21,20 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run collector
+      - name: Run backfill
         env:
-          DART_API_KEY: ${{ secrets.DART_API_KEY }}
-          KRX_ID: ${{ secrets.KRX_ID }}
-          KRX_PW: ${{ secrets.KRX_PW }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python backend/run_collect.py
+        run: python backend/run_backfill_ai.py
 
       - name: Commit and push reports
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add reports/
-          git diff --cached --quiet && echo "No changes to commit" && exit 0
-          git commit -m "chore: daily stock report $(date -u +%Y-%m-%d)"
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "chore: backfill AI analysis $(date -u +%Y-%m-%d)"
           git pull --rebase origin main
           git push
