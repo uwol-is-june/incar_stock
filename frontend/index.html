@@ -2177,9 +2177,11 @@
 
   /* ── AI 텍스트 등락 색상 후처리 ── */
   function colorizeChanges(html) {
-    return html
-      .replace(/(상승|급등|강세|반등|오름)/g, '<span class="ai-rise">$1</span>')
-      .replace(/(하락|급락|약세|하향|내림)/g, '<span class="ai-fall">$1</span>');
+    // 상승률: 부호 있는 양수 퍼센트 (+X.XX%) → 빨강
+    html = html.replace(/([+＋▲]\d[\d,]*\.?\d*\s*%)/g, '<span class="ai-rise">$1</span>');
+    // 하락률: 부호 있는 음수 퍼센트 (-X.XX%) → 파랑
+    html = html.replace(/([-－▼]\d[\d,]*\.?\d*\s*%)/g, '<span class="ai-fall">$1</span>');
+    return html;
   }
 
   /* ── 종합 의견 상단 고정 스트립 ── */

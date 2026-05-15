@@ -580,8 +580,8 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
         except Exception:
             df_cap = None
 
-        # 지수 데이터 (target_date 전후 10일)
-        idx_start = (target_dt - timedelta(days=10)).strftime("%Y%m%d")
+        # 지수 데이터 (target_date 기준 44일 전 ~ 당일, 영업일 30일 확보)
+        idx_start = (target_dt - timedelta(days=44)).strftime("%Y%m%d")
         df_kospi  = _fetch_index("1001", idx_start, end_ymd)
         df_kosdaq = _fetch_index("2001", idx_start, end_ymd)
 
@@ -667,6 +667,8 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
             "net_income_ttm":  net_income_ttm_fd,
             "kospi":           _index_snapshot(df_kospi),
             "kosdaq":          _index_snapshot(df_kosdaq),
+            "kospi_history":   _index_history(df_kospi),
+            "kosdaq_history":  _index_history(df_kosdaq),
             "inst_buy":     _investor_val(df_inv, "기관합계",  "매수"),
             "inst_sell":    _investor_val(df_inv, "기관합계",  "매도"),
             "inst_net":     _investor_val(df_inv, "기관합계",  "순매수"),
