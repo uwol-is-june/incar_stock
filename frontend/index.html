@@ -238,10 +238,10 @@
     .up   { color: var(--color-up);   font-weight: 600; }
     .down { color: var(--color-down); font-weight: 600; }
     .flat { color: var(--color-flat); }
-    /* 테이블 셀 외 요소(뱃지)에만 border-radius+padding 적용 */
-    :not(td):not(th).up,
-    :not(td):not(th).down,
-    :not(td):not(th).flat {
+    /* 테이블 셀·KPI 값 외 요소(뱃지)에만 border-radius+padding 적용 */
+    :not(td):not(th):not(.metric-value).up,
+    :not(td):not(th):not(.metric-value).down,
+    :not(td):not(th):not(.metric-value).flat {
       display: inline-block;
       border-radius: var(--badge-radius);
       padding: 2px 8px;
@@ -416,9 +416,9 @@
     /* ─── 탭 네비게이션 ─── */
     .tab-nav {
       display: flex;
-      gap: 4px;
+      gap: 0;
       margin-bottom: 14px;
-      padding: 5px 0;
+      border-bottom: 1px solid var(--card-border);
     }
     .tab-btn {
       padding: 7px 16px;
@@ -427,16 +427,17 @@
       cursor: pointer;
       font-size: 0.85rem;
       font-weight: 600;
-      color: var(--text-secondary);
-      border-radius: var(--btn-radius);
-      transition: color .15s, background .15s;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color .15s, border-color .15s;
     }
-    .tab-btn.active { color: #fff; background: var(--accent-blue); }
-    .tab-btn:hover:not(.active) { color: var(--accent-blue); background: var(--tbl-hover); }
-    .tab-btn.admin { color: var(--text-muted); font-size: 0.78rem; }
+    .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+    .tab-btn:hover:not(.active) { color: var(--text-secondary); }
+    .tab-btn.admin { color: var(--text-muted); font-size: 0.82rem; }
     .admin-tabs { margin-left: auto; display: flex; }
-    .tab-btn.admin:hover:not(.active) { color: var(--accent-violet); background: var(--accent-violet-bg); }
-    .tab-btn.admin.active { color: #fff; background: var(--accent-violet); }
+    .tab-btn.admin:hover:not(.active) { color: var(--text-secondary); }
+    .tab-btn.admin.active { color: var(--accent-violet); border-bottom-color: var(--accent-violet); }
     /* ─── 관리자 패널 세부 탭 ─── */
     .admin-panel-nav { display: flex; gap: 0; border-bottom: 1px solid var(--card-border); margin-bottom: 16px; }
     .admin-sub-btn {
@@ -887,7 +888,7 @@
       header { padding: 10px 14px; }
       header h1 { font-size: 1rem; }
       .header-ticker { font-size: 0.70rem; }
-      .header-meta { font-size: 0.70rem; }
+      .header-meta { display: none; }
 
       /* 본문 */
       main { margin: 10px auto; padding: 0 10px 20px; }
@@ -944,7 +945,7 @@
         <input type="checkbox" value="chart" checked> 주가 차트
       </label>
       <label class="pdf-check-item">
-        <input type="checkbox" value="company"> 기업 개요
+        <input type="checkbox" value="ai" checked> AI 분석
       </label>
     </div>
     <div class="pdf-modal-actions">
@@ -1293,6 +1294,7 @@
 
   <!-- 탭 5: AI 분석 -->
   <div id="tab-ai" class="tab-panel">
+    <div class="print-section-header">AI 분석</div>
     <div id="ai-wrap"></div>
   </div>
 </main>
@@ -1316,7 +1318,8 @@
   let volumeChart     = null;
   let annualChart     = null;
   let indexModalChart = null;
-  let _printOhlcv7d = null;
+  let _printOhlcv7d   = null;
+  let _printStockData = null;
 
   document.getElementById('logo-home-link').addEventListener('click', e => {
     e.preventDefault();
@@ -2232,7 +2235,8 @@
   /* ── 선택 날짜 기준 렌더링 ── */
   function renderFor(selected, allReports) {
     const stock = selected?.stocks?.[TICKER];
-    _printOhlcv7d = stock?.ohlcv_7d ?? null;
+    _printOhlcv7d   = stock?.ohlcv_7d ?? null;
+    _printStockData = stock ?? null;
     renderHeroCard(stock, selected);
     renderIndexStrip(stock);
     renderPriceMetrics(stock);
@@ -2373,8 +2377,12 @@
     startBackgroundWatcher();
   }
 
-  /* ── 차트 캔버스 인쇄 변환 (canvas → img) ── */
-  window.addEventListener('beforeprint', () => {
+  /* ── 차트 캔버스 인쇄 변환 (canvas → img) ──
+   * @media print 적용 후 beforeprint 시점에 캡처하면 Chart.js ResizeObserver가
+   * 캔버스를 클리어하고 재렌더 중일 수 있어 빈 이미지가 나온다.
+   * window.print() 호출 직전에 캡처하면 스크린 레이아웃 기준으로 픽셀 버퍼를
+   * 읽어 타이밍 문제를 피할 수 있다. */
+  function captureChartsToImages() {
     document.querySelectorAll('canvas').forEach(canvas => {
       const img = document.createElement('img');
       img.src = canvas.toDataURL('image/png');
@@ -2383,7 +2391,7 @@
       canvas.style.display = 'none';
       canvas.parentNode.insertBefore(img, canvas.nextSibling);
     });
-  });
+  }
 
   window.addEventListener('afterprint', () => {
     document.querySelectorAll('.chart-print-img').forEach(img => img.remove());
@@ -2402,7 +2410,7 @@
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        renderChart(_printOhlcv7d, null, true);
+        renderChart(_printOhlcv7d, _printStockData, true);
       }));
     }
   });
@@ -2449,6 +2457,7 @@
     if (chartPreRendered) {
       // 이미 사전 렌더링됨: visibility만 복원 후 바로 인쇄
       chartTabEl.style.visibility = '';
+      captureChartsToImages();
       window.print();
       chartTabEl.style.display = '';
       doAfterPrint();
@@ -2457,15 +2466,17 @@
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
       requestAnimationFrame(() => {
-        renderChart(_printOhlcv7d, null, true);
+        renderChart(_printOhlcv7d, _printStockData, true);
         setTimeout(() => {
           chartTabEl.style.visibility = '';
+          captureChartsToImages();
           window.print();
           chartTabEl.style.display = '';
           doAfterPrint();
         }, 300);
       });
     } else {
+      captureChartsToImages();
       window.print();
       doAfterPrint();
     }
