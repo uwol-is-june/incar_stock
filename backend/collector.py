@@ -418,6 +418,12 @@ def collect() -> dict[str, dict]:
             _prev_c = _c
         ohlcv_7d.reverse()
 
+        # 1년치 종가 (장기 라인 차트용)
+        ohlcv_1y = [
+            {"date": idx.date().isoformat(), "close": int(row["종가"])}
+            for idx, row in history_df.iterrows()
+        ]
+
         # OHLCV에서 curr_row 기준 필드
         def _row_int(col):
             try:
@@ -477,6 +483,7 @@ def collect() -> dict[str, dict]:
             "data_date":   data_date,
             "prev_date":   prev_date,
             "ohlcv_7d":    ohlcv_7d,
+            "ohlcv_1y":    ohlcv_1y,
             # OHLCV 추가 필드 (항상 사용 가능)
             "open":        open_price,
             "high":        high_price,
@@ -638,6 +645,19 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
             _prev_c = _c
         ohlcv_7d.reverse()
 
+        # 1년치 종가 (장기 라인 차트용)
+        start_1y = (target_dt - timedelta(days=365)).strftime("%Y%m%d")
+        try:
+            df_1y = stock.get_market_ohlcv(start_1y, end_ymd, ticker)
+        except Exception:
+            df_1y = None
+        ohlcv_1y = []
+        if df_1y is not None and not df_1y.empty:
+            ohlcv_1y = [
+                {"date": idx.date().isoformat(), "close": int(row["종가"])}
+                for idx, row in df_1y.iterrows()
+            ]
+
         result[ticker] = {
             "close":           curr_close,
             "prev_close":      prev_close,
@@ -646,6 +666,7 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
             "is_fallback":     False,
             "data_date":       target_date,
             "ohlcv_7d":        ohlcv_7d,
+            "ohlcv_1y":        ohlcv_1y,
             "open":            _row_int("시가"),
             "high":            _row_int("고가"),
             "low":             _row_int("저가"),

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Incar Stock Monitor</title>
+  <link rel="icon" type="image/png" href="/img/incar_logo.png" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -648,31 +649,7 @@
       line-height: 1;
     }
     .index-modal-close:hover { background: #f3f4f6; }
-    .index-modal-body { overflow-y: auto; padding: 0 20px 20px; }
-    .index-modal-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.84rem;
-      margin-top: 12px;
-    }
-    .index-modal-table th {
-      text-align: right;
-      padding: 8px 10px;
-      color: #6b7280;
-      font-weight: 600;
-      border-bottom: 1px solid #e4e7ec;
-      white-space: nowrap;
-    }
-    .index-modal-table th:first-child { text-align: left; }
-    .index-modal-table td {
-      padding: 7px 10px;
-      border-bottom: 1px solid #f3f4f6;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-    }
-    .index-modal-table td:first-child { text-align: left; color: #374151; }
-    .index-modal-table tr:last-child td { border-bottom: none; }
+    .index-modal-body { padding: 16px 20px 20px; }
 
     /* ─── 인쇄(@media print) ─── */
     @media print {
@@ -910,17 +887,7 @@
       <button class="index-modal-close" id="index-modal-close">✕</button>
     </div>
     <div class="index-modal-body">
-      <table class="index-modal-table">
-        <thead>
-          <tr>
-            <th>날짜</th>
-            <th>종가</th>
-            <th>전일대비</th>
-            <th>등락률</th>
-          </tr>
-        </thead>
-        <tbody id="index-modal-tbody"></tbody>
-      </table>
+      <canvas id="index-modal-chart"></canvas>
     </div>
   </div>
 </div>
@@ -1115,11 +1082,11 @@
               <td></td>
             </tr>
             <tr>
-              <td>전체 주가 차트 이미지</td>
-              <td>네이버 금융</td>
-              <td><span class="source-badge naver">이미지 URL</span></td>
-              <td>실시간</td>
-              <td>ssl.pstatic.net</td>
+              <td>전체 주가 추이 (1년)</td>
+              <td>한국거래소 (KRX)</td>
+              <td><span class="source-badge">pyKRX</span></td>
+              <td>일 1회 (장마감 후)</td>
+              <td>최근 365일 OHLCV 종가 기준</td>
             </tr>
           </tbody>
         </table>
@@ -1243,11 +1210,9 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-title">전체 주가 추이</div>
-      <div style="padding:12px 20px 16px;">
-        <img id="naver-full-chart"
-             alt="전체 주가 추이"
-             style="width:100%; border-radius:4px; display:block;" />
+      <div class="card-title">전체 주가 추이 (최근 1년 · 라인)</div>
+      <div style="padding:16px 20px;">
+        <canvas id="annual-chart" height="160"></canvas>
       </div>
     </div>
   </div>
@@ -1268,8 +1233,10 @@
   const selectDate = document.getElementById('select-date');
   const headerMeta = document.getElementById('header-meta');
   const tbody      = document.getElementById('stock-tbody');
-  let priceChart    = null;
-  let volumeChart   = null;
+  let priceChart      = null;
+  let volumeChart     = null;
+  let annualChart     = null;
+  let indexModalChart = null;
   let _printOhlcv7d = null;
 
   document.getElementById('logo-home-link').addEventListener('click', e => {
@@ -1590,21 +1557,43 @@
   /* ── 지수 상세 모달 ── */
   function showIndexModal(name, history) {
     if (!history || !history.length) return;
-    document.getElementById('index-modal-title').textContent = `${name} 최근 ${history.length}일 이력`;
-    const rows = [...history].reverse();  // 최신 → 구
-    document.getElementById('index-modal-tbody').innerHTML = rows.map((h, i) => {
-      const prev = rows[i + 1];
-      const chg     = prev ? +(h.close - prev.close).toFixed(2) : null;
-      const chg_pct = (prev && prev.close) ? +(chg / prev.close * 100).toFixed(2) : null;
-      const c    = chg == null ? '' : chg >= 0 ? 'up' : 'down';
-      const sign = chg != null && chg >= 0 ? '+' : '';
-      return `<tr>
-        <td>${h.date}</td>
-        <td>${h.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-        <td class="${c}">${chg != null ? sign + chg.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—'}</td>
-        <td class="${c}">${chg_pct != null ? sign + chg_pct + '%' : '—'}</td>
-      </tr>`;
-    }).join('');
+    const data = history.slice(-20);  // 최근 20일
+    document.getElementById('index-modal-title').textContent = `${name} 최근 ${data.length}일 추이`;
+
+    if (indexModalChart) { indexModalChart.destroy(); indexModalChart = null; }
+
+    const isUp = data.length >= 2 && data[data.length - 1].close >= data[0].close;
+    const color = isUp ? '#dc2626' : '#2563eb';
+    const ctx = document.getElementById('index-modal-chart').getContext('2d');
+    indexModalChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [{
+          data: data.map(d => ({ x: d.date, y: d.close })),
+          borderColor: color,
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0,
+          fill: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 300 },
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            type: 'time',
+            time: { unit: 'day', displayFormats: { day: 'MM/dd' } },
+            ticks: { maxRotation: 0, maxTicksLimit: 6 },
+          },
+          y: {
+            ticks: { callback: v => v.toLocaleString('ko-KR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }
+          }
+        }
+      }
+    });
+
     document.getElementById('index-modal').style.display = 'flex';
   }
 
@@ -1874,9 +1863,38 @@
       }
     });
 
-    const naverImg = document.getElementById('naver-full-chart');
-    if (naverImg && !naverImg.src) {
-      naverImg.src = `https://ssl.pstatic.net/imgfinance/chart/item/area/year10/${TICKER}.png?sidcode=${Date.now()}`;
+    if (annualChart) { annualChart.destroy(); annualChart = null; }
+    const annualData = (s.ohlcv_1y || []).map(d => ({ x: d.date, y: d.close }));
+    if (annualData.length > 0) {
+      const ctx3 = document.getElementById('annual-chart').getContext('2d');
+      annualChart = new Chart(ctx3, {
+        type: 'line',
+        data: {
+          datasets: [{
+            data: annualData,
+            borderColor: '#dc2626',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            tension: 0,
+            fill: false,
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              type: 'time',
+              time: { unit: 'month', displayFormats: { month: 'yy.MM' } },
+              ticks: { maxRotation: 0 },
+            },
+            y: {
+              ticks: { callback: v => v.toLocaleString('ko-KR') }
+            }
+          }
+        }
+      });
     }
   }
 

@@ -13,6 +13,22 @@ _(없음)_
 
 ---
 
+## [0.3.2] - 2026-05-18
+
+### Changed
+- [TASK-029] 자동 수집 스케줄러를 Vercel Cron → cron-job.org + GitHub Actions `workflow_dispatch`로 전환 — Vercel Hobby Cron 미작동 문제 해결, KST 16:10 정시 실행 보장
+- [TASK-030] 보고서 파일명·`date` 필드를 실행일 기준 → `data_date`(실제 거래일) 기준으로 변경 — 장마감 후 pykrx가 전일 데이터 반환 시 파일명 불일치 해소
+
+### Fixed
+- [TASK-028] 모바일에서 PDF 출력 버튼 숨김 — 인쇄 불가 환경 고려
+- `generated_at` UTC 표기 오류 수정 → KST(`+09:00`) 명시
+
+### Removed
+- Vercel Cron 설정 (`vercel.json` `crons` 블록) 제거
+- `api/trigger-collect.js` (Vercel Cron 브리지 엔드포인트) 삭제
+
+---
+
 ## [0.3.1] - 2026-05-15
 
 ### Changed

@@ -2,10 +2,10 @@
 
 ## 1. 시스템 개요
 
-Vercel Cron이 매 거래일 KST 16:10에 GitHub Actions `workflow_dispatch`를 트리거한다.
+cron-job.org가 매 거래일 KST 16:10에 GitHub Actions `workflow_dispatch`를 트리거한다.
 `run_collect.py`가 pykrx로 인카금융서비스(211050) 주가·펀더멘털·투자자 동향과 KOSPI/KOSDAQ 지수를 수집하고,
 `analyzer.py`가 Gemini AI로 시장 요약과 종목 분석 코멘트를 생성한다.
-`reporter.py`가 결과를 날짜별 JSON 파일로 저장한 뒤 `index.json`을 갱신한다.
+`reporter.py`가 결과를 `data_date` 기준 날짜별 JSON 파일로 저장한 뒤 `index.json`을 갱신한다.
 변경된 `reports/` 파일이 레포에 커밋·푸시되면 Vercel이 자동으로 재배포하고,
 `frontend/index.html`이 정적 JSON 파일을 직접 읽어 대시보드를 렌더링한다.
 
@@ -14,11 +14,8 @@ Vercel Cron이 매 거래일 KST 16:10에 GitHub Actions `workflow_dispatch`를 
 ## 2. 컴포넌트 구조
 
 ```
-[Vercel Cron - 평일 16:10 KST]
-        │ GET /api/trigger-collect
-        ▼
-[ api/trigger-collect.js ]  ← GitHub Actions workflow_dispatch 호출
-        │
+[cron-job.org - 평일 16:10 KST (Asia/Seoul)]
+        │ POST https://api.github.com/.../daily-collect.yml/dispatches
         ▼
 [GitHub Actions - workflow_dispatch]
         │
@@ -55,21 +52,19 @@ Vercel Cron이 매 거래일 KST 16:10에 GitHub Actions `workflow_dispatch`를 
 | config.py | WATCHLIST, REPORT_DIR, API 키 설정 | `backend/config.py` |
 | main.py | FastAPI 서버 (로컬 개발·관리자 기능용) — 자동 백필, AI 수동 업데이트 엔드포인트 포함 | `backend/main.py` |
 | index.html | 인라인 CSS 6탭 대시보드 (시세현황·종목정보·투자자동향·주가차트·AI분석·관리자) | `frontend/index.html` |
-| trigger-collect.js | Vercel Cron → GitHub Actions workflow_dispatch 브리지 | `api/trigger-collect.js` |
 | trigger-ai-update.js | 프론트엔드 수동 버튼 → GitHub Actions backfill-ai 트리거 | `api/trigger-ai-update.js` |
-| daily-collect.yml | GitHub Actions 워크플로우 — workflow_dispatch로 수집 실행 | `.github/workflows/daily-collect.yml` |
+| daily-collect.yml | GitHub Actions 워크플로우 — cron-job.org `workflow_dispatch` + 수동 트리거 | `.github/workflows/daily-collect.yml` |
 | backfill-ai.yml | GitHub Actions 워크플로우 — AI 재분석 수동 트리거 | `.github/workflows/backfill-ai.yml` |
-| vercel.json | Vercel 라우팅 + Cron 설정 (`/api/trigger-collect` 평일 16:10 KST) | `vercel.json` |
+| vercel.json | Vercel 라우팅 설정 | `vercel.json` |
 
 ---
 
 ## 3. 데이터 흐름
 
 ```
-[Vercel Cron - 평일 16:10 KST]
-  └─ GET /api/trigger-collect
-       └─ GitHub API workflow_dispatch → daily-collect.yml
-            └─ run_collect.py
+[cron-job.org - 평일 16:10 KST]
+  └─ POST GitHub API workflow_dispatch → daily-collect.yml
+       └─ run_collect.py
                  ├─ is_business_day() 체크 → 비영업일이면 종료
                  ├─ collector.collect()
                  │    ├─ pykrx 365일치 OHLCV → 52주 고저 계산
@@ -180,10 +175,11 @@ Vercel Cron이 매 거래일 KST 16:10에 GitHub Actions `workflow_dispatch`를 
 - **이유**: 서버 운영 비용 없음, 항상 최신 데이터 보장, 별도 서버 프로세스 불필요
 - **트레이드오프**: 관리자 기능(AI 수동 업데이트 등)은 로컬 서버(`main.py`) 실행 또는 GitHub Actions workflow_dispatch로만 실행 가능
 
-### ADR-003: 자동화 — Vercel Cron + workflow_dispatch 채택 (GitHub Actions schedule 대신)
-- **결정**: `vercel.json`에 cron 설정 → `api/trigger-collect.js`가 GitHub Actions `workflow_dispatch` 호출
-- **이유**: GitHub Actions `schedule:` 트리거는 피크 시간대에 2~3시간 지연 발생. Vercel Cron은 정시 실행 보장
-- **인증**: Vercel이 cron 요청 시 `Authorization: Bearer <CRON_SECRET>` 헤더 자동 주입
+### ADR-003: 자동화 — cron-job.org + GitHub Actions workflow_dispatch 채택
+- **결정**: cron-job.org (Asia/Seoul 16:10) → GitHub API `workflow_dispatch` 직접 호출 → `daily-collect.yml` 실행
+- **이유**: GitHub Actions `schedule:` 피크 시간대 2~3시간 지연, Vercel Hobby Cron 미작동 문제. cron-job.org는 ±1분 이내 정시 HTTP 요청 보장
+- **인증**: cron-job.org 요청 헤더에 GitHub Fine-grained PAT (`actions=write` 권한) 설정
+- **주말 처리**: cron-job.org는 매일 실행하되 `run_collect.py`의 `is_business_day()` 가 비영업일 자동 스킵
 
 ### ADR-004: 전일대비 계산 — 직접 계산 방식
 - **결정**: pykrx 365일치 조회 후 `curr_close - prev_close` 직접 계산
@@ -204,5 +200,6 @@ Vercel Cron이 매 거래일 KST 16:10에 GitHub Actions `workflow_dispatch`를 
 | DART (금융감독원) | 분기 재무제표 수집 (TTM, 자본총액) | DART_API_KEY 환경변수 |
 | Gemini AI (Google) | 시장 요약 + 종목 분석 코멘트 생성 | GEMINI_API_KEY 환경변수 |
 | Naver Finance | 10년 주가 차트 이미지 | 없음 (img src 직접 참조) |
-| Vercel | 정적 파일 호스팅 + Cron 트리거 | GitHub 레포 연동, CRON_SECRET/GITHUB_TOKEN 환경변수 |
-| GitHub Actions | 수집 워크플로우 실행 | GITHUB_TOKEN (Vercel 환경변수) |
+| Vercel | 정적 파일 호스팅 | GitHub 레포 연동 |
+| cron-job.org | 매 거래일 KST 16:10 workflow_dispatch 트리거 | GitHub Fine-grained PAT (cron-job.org 헤더 설정) |
+| GitHub Actions | 수집 워크플로우 실행 | 레포 내장 GITHUB_TOKEN |
