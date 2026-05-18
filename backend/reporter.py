@@ -1,5 +1,7 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+KST = timezone(timedelta(hours=9))
 from pathlib import Path
 
 from config import REPORT_DIR
@@ -9,7 +11,7 @@ def save(date_str: str, stocks: dict[str, dict], market_summary: str) -> Path:
     REPORT_DIR.mkdir(exist_ok=True)
     report = {
         "date": date_str,
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "generated_at": datetime.now(KST).isoformat(timespec="seconds"),
         "market_summary": market_summary,
         "stocks": stocks,
     }
