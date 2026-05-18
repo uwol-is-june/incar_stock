@@ -235,8 +235,8 @@
     tr:hover td { background: var(--tbl-hover); }
 
     /* 한국 증시 색상 관례: 상승=빨강, 하락=파랑 */
-    .up   { color: var(--color-up);   font-weight: 600; }
-    .down { color: var(--color-down); font-weight: 600; }
+    .up   { color: var(--color-up); }
+    .down { color: var(--color-down); }
     .flat { color: var(--color-flat); }
     .metric-value.up, .metric-value.down, .metric-value.flat { font-weight: 700; }
     /* 테이블 셀·KPI 값 외 요소(뱃지)에만 border-radius+padding 적용 */
@@ -351,7 +351,7 @@
     .hero-card {
       background: var(--card-bg);
       border-radius: var(--card-radius);
-      padding: 20px 24px;
+      padding: 28px 28px;
       display: flex;
       align-items: center;
       gap: 0;
@@ -359,9 +359,9 @@
     }
     .hero-left { flex-shrink: 0; }
     .hero-label {
-      font-size: 0.76rem;
-      font-weight: 400;
-      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-primary);
       letter-spacing: 0.3px;
     }
     .hero-date { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; margin-bottom: 8px; }
@@ -1642,7 +1642,7 @@
   function showIndexModal(name, history) {
     if (!history || !history.length) return;
     const data = history.slice(-20);  // 최근 20일
-    document.getElementById('index-modal-title').textContent = `${name} 최근 ${data.length}일 추이`;
+    document.getElementById('index-modal-title').textContent = `${name} 최근 ${data.length} 거래일 추이`;
 
     if (indexModalChart) { indexModalChart.destroy(); indexModalChart = null; }
 
@@ -1657,12 +1657,15 @@
           borderColor: color,
           borderWidth: 2,
           pointRadius: 0,
+          pointHoverRadius: 5,
+          hitRadius: 20,
           tension: 0,
           fill: false,
         }]
       },
       options: {
         responsive: true,
+        interaction: { mode: 'index', intersect: false },
         animation: { duration: 300 },
         plugins: { legend: { display: false } },
         scales: {
@@ -1739,8 +1742,8 @@
         <td class="${cls(s.high - s.close)}">${fmt(s.high)}</td>
         <td class="${cls(s.low - s.close)}">${fmt(s.low)}</td>
         <td><strong>${fmt(s.close)}</strong></td>
-        <td class="${c}">${signFmt(s.change)}</td>
-        <td class="${c}">${s.change_pct != null ? (s.change_pct > 0 ? '+' : '') + s.change_pct + '%' : '—'}</td>
+        <td class="${c}"><strong>${signFmt(s.change)}</strong></td>
+        <td class="${c}"><strong>${s.change_pct != null ? (s.change_pct > 0 ? '+' : '') + s.change_pct + '%' : '—'}</strong></td>
         <td>${fmt(s.volume)}</td>
       </tr>`;
     }).join('');
@@ -1775,13 +1778,13 @@
         : '—';
       return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
         <td>${s.data_date}</td>
-        <td>${fmtW(ohlcv?.close)}</td>
-        <td class="${ohlcv?.change != null ? cls(ohlcv.change) : 'flat'}">${ohlcv?.change != null ? signFmt(ohlcv.change) + '원' : '—'}</td>
-        <td class="${ohlcv?.change_pct != null ? cls(ohlcv.change_pct) : 'flat'}">${chgPctStr}</td>
+        <td><strong>${fmtW(ohlcv?.close)}</strong></td>
+        <td class="${ohlcv?.change != null ? cls(ohlcv.change) : 'flat'}"><strong>${ohlcv?.change != null ? signFmt(ohlcv.change) + '원' : '—'}</strong></td>
+        <td class="${ohlcv?.change_pct != null ? cls(ohlcv.change_pct) : 'flat'}"><strong>${chgPctStr}</strong></td>
         <td>${fmtVol(ohlcv?.volume)}</td>
-        <td class="${s.indiv_net   != null ? cls(s.indiv_net)   : 'flat'}">${fmtOk(s.indiv_net,   true)}</td>
-        <td class="${s.inst_net    != null ? cls(s.inst_net)    : 'flat'}">${fmtOk(s.inst_net,    true)}</td>
-        <td class="${s.foreign_net != null ? cls(s.foreign_net) : 'flat'}">${fmtOk(s.foreign_net, true)}</td>
+        <td class="${s.indiv_net   != null ? cls(s.indiv_net)   : 'flat'}"><strong>${fmtOk(s.indiv_net,   true)}</strong></td>
+        <td class="${s.inst_net    != null ? cls(s.inst_net)    : 'flat'}"><strong>${fmtOk(s.inst_net,    true)}</strong></td>
+        <td class="${s.foreign_net != null ? cls(s.foreign_net) : 'flat'}"><strong>${fmtOk(s.foreign_net, true)}</strong></td>
       </tr>`;
     }).join('');
 
@@ -1820,7 +1823,7 @@
               <tbody>
                 ${instDetails.map((d, i) => {
                   const c = d.net != null ? cls(d.net) : 'flat';
-                  return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms"><td>${d.label}</td><td class="${c}">${fmtOk(d.net, true)}</td></tr>`;
+                  return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms"><td>${d.label}</td><td class="${c}"><strong>${fmtOk(d.net, true)}</strong></td></tr>`;
                 }).join('')}
               </tbody>
             </table>
@@ -1838,7 +1841,7 @@
                     <td>${r.label}</td>
                     <td>${fmtOk(r.buy)}</td>
                     <td>${fmtOk(r.sell)}</td>
-                    <td class="${c}">${fmtOk(r.net, true)}</td>
+                    <td class="${c}"><strong>${fmtOk(r.net, true)}</strong></td>
                   </tr>`;
                 }).join('')}
               </tbody>
@@ -1959,12 +1962,15 @@
             borderColor: C_UP,
             borderWidth: 1.5,
             pointRadius: 0,
+            pointHoverRadius: 5,
+            hitRadius: 20,
             tension: 0,
             fill: false,
           }]
         },
         options: {
           responsive: true,
+          interaction: { mode: 'index', intersect: false },
           animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
           plugins: { legend: { display: false } },
           scales: {
