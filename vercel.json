@@ -1,11 +1,5 @@
 {
   "rewrites": [
     { "source": "/", "destination": "/frontend/index.html" }
-  ],
-  "crons": [
-    {
-      "path": "/api/trigger-collect",
-      "schedule": "10 7 * * 1-5"
-    }
   ]
 }
