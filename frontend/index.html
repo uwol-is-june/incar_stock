@@ -1667,7 +1667,18 @@
         responsive: true,
         interaction: { mode: 'index', intersect: false },
         animation: { duration: 300 },
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: items => {
+                const d = new Date(items[0].parsed.x);
+                return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+              },
+              label: item => item.parsed.y.toLocaleString('ko-KR') + 'p',
+            }
+          }
+        },
         scales: {
           x: {
             type: 'time',
@@ -1972,7 +1983,18 @@
           responsive: true,
           interaction: { mode: 'index', intersect: false },
           animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: items => {
+                  const d = new Date(items[0].parsed.x);
+                  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+                },
+                label: item => item.parsed.y.toLocaleString('ko-KR') + '원',
+              }
+            }
+          },
           scales: {
             x: {
               type: 'time',
