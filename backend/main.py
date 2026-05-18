@@ -163,6 +163,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="InCar Stock Monitor", lifespan=lifespan)
 
 app.mount("/img", StaticFiles(directory=BASE_DIR / "img"), name="img")
+app.mount("/reports", StaticFiles(directory=BASE_DIR / "reports"), name="reports")
 
 app.add_middleware(
     CORSMiddleware,
