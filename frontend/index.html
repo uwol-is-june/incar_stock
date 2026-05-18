@@ -1318,8 +1318,9 @@
   let volumeChart     = null;
   let annualChart     = null;
   let indexModalChart = null;
-  let _printOhlcv7d   = null;
-  let _printStockData = null;
+  let _printOhlcv7d        = null;
+  let _printStockData      = null;
+  let _chartPreRenderDone  = false;
 
   document.getElementById('logo-home-link').addEventListener('click', e => {
     e.preventDefault();
@@ -2406,11 +2407,13 @@
 
     // 차트 탭이 비활성이고 데이터가 있으면 모달이 열리는 동안 미리 렌더링 (hidden 상태로)
     const chartTabEl = document.getElementById('tab-chart');
+    _chartPreRenderDone = false;
     if (!chartTabEl.classList.contains('active') && _printOhlcv7d) {
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
       requestAnimationFrame(() => requestAnimationFrame(() => {
         renderChart(_printOhlcv7d, _printStockData, true);
+        _chartPreRenderDone = true;
       }));
     }
   });
@@ -2422,6 +2425,7 @@
       chartTabEl.style.display = '';
       chartTabEl.style.visibility = '';
     }
+    _chartPreRenderDone = false;
     pdfModal.style.display = 'none';
   });
 
@@ -2433,6 +2437,7 @@
       chartTabEl.style.display = '';
       chartTabEl.style.visibility = '';
     }
+    _chartPreRenderDone = false;
     pdfModal.style.display = 'none';
   });
 
@@ -2444,8 +2449,7 @@
 
     const chartTabEl = document.getElementById('tab-chart');
     const chartPreRendered = selected.includes('chart')
-      && chartTabEl.style.display === 'block'
-      && chartTabEl.style.visibility === 'hidden';
+      && _chartPreRenderDone;
     const needsChartInit = selected.includes('chart')
       && !chartTabEl.classList.contains('active')
       && !chartPreRendered;
