@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-18",
+  "date": "2026-05-15",
   "generated_at": "2026-05-18T00:47:31",
   "market_summary": "금주 시장은 전반적으로 큰 폭의 하락세를 보이며 투자 심리가 위축되었습니다. KOSPI와 KOSDAQ 지수가 각각 6.12%, 5.14% 하락하며 위험자산 회피 심리가 두드러졌습니다.",
   "stocks": {
@@ -9,7 +9,7 @@
       "prev_close": 10560,
       "change": -110,
       "change_pct": -1.04,
-      "is_fallback": true,
+      "is_fallback": false,
       "data_date": "2026-05-15",
       "prev_date": "2026-05-14",
       "ohlcv_7d": [
