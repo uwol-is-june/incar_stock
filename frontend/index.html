@@ -2150,13 +2150,14 @@
       return;
     }
 
+    const normalized = comment.replace(/(###[^:\n]+:)[ \t]+/g, '$1\n');
     let html = '';
     if (comment) {
       html += `
         <div class="card">
           <div class="card-title">종목 분석 — 인카금융서비스 (${TICKER})<span class="ai-badge">AI</span></div>
           <div style="padding:16px 20px 20px;">
-            <div class="ai-text">${marked.parse(colorizeChanges(comment))}</div>
+            <div class="ai-text">${marked.parse(colorizeChanges(normalized))}</div>
           </div>
         </div>`;
     }
