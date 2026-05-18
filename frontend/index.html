@@ -8,7 +8,7 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { scrollbar-gutter: stable; }
+    html { scrollbar-gutter: stable; font-size: 17px; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -75,7 +75,7 @@
     }
     #select-date:focus { outline: 2px solid #2563eb; }
     .header-meta {
-      font-size: 0.7rem;
+      font-size: 0.76rem;
       color: #6b7280;
       text-align: right;
     }
@@ -96,7 +96,7 @@
     }
     .metrics-section { margin-bottom: 14px; }
     .metrics-section-title {
-      font-size: 0.68rem;
+      font-size: 0.76rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .5px;
@@ -112,7 +112,7 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     }
     .metric-label {
-      font-size: 0.68rem;
+      font-size: 0.76rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .5px;
@@ -127,12 +127,12 @@
     }
     .metric-value.na { color: #d1d5db; font-size: 0.95rem; }
     .metric-sub {
-      font-size: 0.7rem;
+      font-size: 0.76rem;
       color: #9ca3af;
       margin-top: 2px;
     }
     .metric-note {
-      font-size: 0.65rem;
+      font-size: 0.76rem;
       color: #6b7280;
       margin-top: 3px;
       font-style: italic;
@@ -147,7 +147,7 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     }
     .card-title {
-      font-size: 0.72rem;
+      font-size: 0.76rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .6px;
@@ -247,7 +247,7 @@
     .index-card:hover { opacity: 0.82; }
     .index-card-row { display: flex; align-items: center; justify-content: space-between; }
     .index-name {
-      font-size: 0.7rem;
+      font-size: 0.76rem;
       font-weight: 700;
       color: #8899aa;
     }
@@ -298,7 +298,7 @@
     }
     .hero-left { flex-shrink: 0; }
     .hero-label {
-      font-size: 0.7rem;
+      font-size: 0.76rem;
       font-weight: 700;
       color: #9ca3af;
       letter-spacing: 0.3px;
@@ -345,7 +345,7 @@
       display: inline-block;
       padding: 1px 6px;
       border-radius: 5px;
-      font-size: 0.65rem;
+      font-size: 0.76rem;
       font-weight: 700;
       background: #eff6ff;
       color: #1d4ed8;
@@ -604,6 +604,9 @@
     }
     .pdf-btn-print:hover { background: #1d4ed8; }
 
+    canvas { max-width: 100%; display: block; }
+    .chart-pad { padding: 16px 20px; }
+
     /* ─── 지수 상세 모달 ─── */
     #index-modal {
       position: fixed;
@@ -650,6 +653,13 @@
     }
     .index-modal-close:hover { background: #f3f4f6; }
     .index-modal-body { padding: 16px 20px 20px; }
+
+    @media (max-width: 640px) {
+      .index-modal-card { width: calc(100vw - 32px); max-height: 85vh; }
+      .index-modal-header { padding: 12px 16px; }
+      .index-modal-body { padding: 12px 16px 16px; }
+      .index-modal-title { font-size: 0.95rem; }
+    }
 
     /* ─── 인쇄(@media print) ─── */
     @media print {
@@ -772,7 +782,7 @@
       display: inline-block;
       padding: 1px 7px;
       border-radius: 4px;
-      font-size: 0.65rem;
+      font-size: 0.76rem;
       font-weight: 700;
       background: #eef2ff;
       color: #4338ca;
@@ -790,7 +800,7 @@
     }
 
     .opinion-label {
-      font-size: 0.68rem;
+      font-size: 0.76rem;
       font-weight: 700;
       color: #4338ca;
       text-transform: uppercase;
@@ -814,9 +824,9 @@
 
       /* 헤더 */
       header { padding: 10px 14px; }
-      header h1 { font-size: 0.95rem; }
-      .header-ticker { font-size: 0.65rem; }
-      .header-meta { font-size: 0.65rem; }
+      header h1 { font-size: 1rem; }
+      .header-ticker { font-size: 0.70rem; }
+      .header-meta { font-size: 0.70rem; }
 
       /* 본문 */
       main { margin: 10px auto; padding: 0 10px 20px; }
@@ -843,6 +853,9 @@
       .card { overflow: visible; }
       .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       th, td { padding: 8px 10px; }
+
+      /* 차트 컨테이너 패딩 */
+      .chart-pad { padding: 12px 14px; }
     }
   </style>
 </head>
@@ -1198,20 +1211,20 @@
     <div class="chart-grid">
       <div class="card">
         <div class="card-title">주가 추이 (최근 7거래일 · 캔들스틱)</div>
-        <div style="padding:16px 20px;">
+        <div class="chart-pad">
           <canvas id="price-chart" height="160"></canvas>
         </div>
       </div>
       <div class="card">
         <div class="card-title">거래량 추이 (최근 7거래일)</div>
-        <div style="padding:16px 20px;">
+        <div class="chart-pad">
           <canvas id="volume-chart" height="160"></canvas>
         </div>
       </div>
     </div>
     <div class="card">
       <div class="card-title">전체 주가 추이 (최근 1년 · 라인)</div>
-      <div style="padding:16px 20px;">
+      <div class="chart-pad">
         <canvas id="annual-chart" height="160"></canvas>
       </div>
     </div>
