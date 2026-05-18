@@ -1670,6 +1670,7 @@
         plugins: {
           legend: { display: false },
           tooltip: {
+            displayColors: false,
             callbacks: {
               title: items => {
                 const d = new Date(items[0].parsed.x);
@@ -1903,6 +1904,7 @@
         plugins: {
           legend: { display: false },
           tooltip: {
+            displayColors: false,
             callbacks: {
               label: ctx => {
                 const d = ctx.raw;
@@ -1949,6 +1951,7 @@
         plugins: {
           legend: { display: false },
           tooltip: {
+            displayColors: false,
             callbacks: {
               label: ctx => ctx.parsed.y.toLocaleString('ko-KR') + '주'
             }
