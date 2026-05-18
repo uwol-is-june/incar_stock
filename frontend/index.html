@@ -11,7 +11,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f0f2f5;
+      background: #f4f6f9;
       color: #1a1a2e;
       min-height: 100vh;
       scrollbar-gutter: stable;
@@ -106,8 +106,9 @@
     .metric-card {
       background: #fff;
       border: 1px solid #e4e7ec;
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 13px 16px 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     }
     .metric-label {
       font-size: 0.68rem;
@@ -118,7 +119,7 @@
       margin-bottom: 5px;
     }
     .metric-value {
-      font-size: 1.1rem;
+      font-size: 1.18rem;
       font-weight: 700;
       color: #111827;
       letter-spacing: -0.3px;
@@ -140,8 +141,9 @@
     .card {
       background: #fff;
       border: 1px solid #e4e7ec;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     }
     .card-title {
       font-size: 0.72rem;
@@ -176,7 +178,7 @@
     }
     td:first-child { text-align: left; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #fafbfc; }
+    tr:hover td { background: #f0f4ff; }
 
     /* 한국 증시 색상 관례: 상승=빨강, 하락=파랑 */
     .up   { color: #dc2626; font-weight: 600; }
@@ -231,7 +233,7 @@
       flex: 1;
       background: #0d1b2a;
       color: #fff;
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 14px 18px 16px;
       display: flex;
       flex-direction: column;
@@ -291,6 +293,7 @@
       display: flex;
       align-items: center;
       gap: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     }
     .hero-left { flex-shrink: 0; }
     .hero-label {
@@ -301,7 +304,7 @@
     }
     .hero-date { font-size: 0.78rem; color: #6b7280; margin-top: 2px; margin-bottom: 8px; }
     .hero-close {
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: 800;
       letter-spacing: -1px;
       line-height: 1;
@@ -352,28 +355,27 @@
     /* ─── 탭 네비게이션 ─── */
     .tab-nav {
       display: flex;
-      gap: 0;
+      gap: 4px;
       margin-bottom: 14px;
-      border-bottom: 2px solid #e4e7ec;
+      padding: 5px 0;
     }
     .tab-btn {
-      padding: 9px 18px;
+      padding: 7px 16px;
       border: none;
       background: none;
       cursor: pointer;
       font-size: 0.85rem;
       font-weight: 600;
       color: #6b7280;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: color .15s, border-color .15s;
+      border-radius: 7px;
+      transition: color .15s, background .15s;
     }
-    .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
-    .tab-btn:hover:not(.active) { color: #374151; }
+    .tab-btn.active { color: #fff; background: #2563eb; }
+    .tab-btn:hover:not(.active) { color: #2563eb; background: #f0f4ff; }
     .tab-btn.admin { color: #9ca3af; font-size: 0.78rem; }
     .admin-tabs { margin-left: auto; display: flex; }
-    .tab-btn.admin:hover:not(.active) { color: #6b7280; }
-    .tab-btn.admin.active { color: #7c3aed; border-bottom-color: #7c3aed; }
+    .tab-btn.admin:hover:not(.active) { color: #7c3aed; background: #f5f3ff; }
+    .tab-btn.admin.active { color: #fff; background: #7c3aed; }
     /* ─── 관리자 패널 세부 탭 ─── */
     .admin-panel-nav { display: flex; gap: 0; border-bottom: 1px solid #e4e7ec; margin-bottom: 16px; }
     .admin-sub-btn {
@@ -534,6 +536,7 @@
       white-space: nowrap;
     }
     #btn-print-pdf:hover { background: #2d3f52; }
+    @media (max-width: 768px) { #btn-print-pdf { display: none; } }
 
     /* ─── PDF 선택 팝업 ─── */
     #pdf-modal {
