@@ -1673,7 +1673,7 @@
             callbacks: {
               title: items => {
                 const d = new Date(items[0].parsed.x);
-                return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+                return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
               },
               label: item => item.parsed.y.toLocaleString('ko-KR') + 'p',
             }
@@ -1989,7 +1989,7 @@
               callbacks: {
                 title: items => {
                   const d = new Date(items[0].parsed.x);
-                  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+                  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
                 },
                 label: item => item.parsed.y.toLocaleString('ko-KR') + '원',
               }
