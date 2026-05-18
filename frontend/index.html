@@ -1778,7 +1778,7 @@
   }
 
   /* ── 탭4: 주가 차트 렌더 ── */
-  function renderChart(ohlcv7d, noAnimation = false) {
+  function renderChart(ohlcv7d, stockData = null, noAnimation = false) {
     if (priceChart) { priceChart.destroy(); priceChart = null; }
     if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
 
@@ -1877,7 +1877,7 @@
     });
 
     if (annualChart) { annualChart.destroy(); annualChart = null; }
-    const annualData = (s.ohlcv_1y || []).map(d => ({ x: d.date, y: d.close }));
+    const annualData = (stockData?.ohlcv_1y || []).map(d => ({ x: d.date, y: d.close }));
     if (annualData.length > 0) {
       const ctx3 = document.getElementById('annual-chart').getContext('2d');
       annualChart = new Chart(ctx3, {
@@ -2172,7 +2172,7 @@
     renderInfoMetrics(stock);
     renderRows(stock?.ohlcv_7d ?? []);
     renderInvestor(stock, allReports);
-    renderChart(stock?.ohlcv_7d);
+    renderChart(stock?.ohlcv_7d, stock);
     renderQuality(selected);
     renderAI(selected);
   }
@@ -2335,7 +2335,7 @@
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        renderChart(_printOhlcv7d, true);
+        renderChart(_printOhlcv7d, null, true);
       }));
     }
   });
@@ -2390,7 +2390,7 @@
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
       requestAnimationFrame(() => {
-        renderChart(_printOhlcv7d, true);
+        renderChart(_printOhlcv7d, null, true);
         setTimeout(() => {
           chartTabEl.style.visibility = '';
           window.print();
