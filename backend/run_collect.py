@@ -26,7 +26,7 @@ def main() -> None:
         logger.error("[run_collect] 데이터 수집 실패")
         sys.exit(1)
 
-    data_date = stocks[0]["data_date"]
+    data_date = next(iter(stocks.values()))["data_date"]
     enriched, market_summary = analyzer.analyze(stocks)
     reporter.save(data_date, enriched, market_summary)  # save() → update_index() 자동 호출
     reporter.prune(5)                 # prune() → update_index() 자동 호출
