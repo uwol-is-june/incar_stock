@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Incar Stock Monitor</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="icon" type="image/png" href="/img/incar_logo.png" />
   <style>
@@ -66,7 +68,7 @@
     html { scrollbar-gutter: stable; font-size: 17px; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -233,6 +235,9 @@
     td:first-child { text-align: left; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--tbl-hover); }
+    #stock-tbody td { font-weight: 700; }
+    #investor-wrap td { font-weight: 700; }
+    .investor-row-active td { background: var(--tbl-hover); }
 
     /* 한국 증시 색상 관례: 상승=빨강, 하락=파랑 */
     .up   { color: var(--color-up); }
@@ -351,7 +356,7 @@
     .hero-card {
       background: var(--card-bg);
       border-radius: var(--card-radius);
-      padding: 28px 28px;
+      padding: 42px 28px;
       display: flex;
       align-items: center;
       gap: 0;
@@ -900,7 +905,7 @@
       .index-value { font-size: 1rem; }
 
       /* Hero 카드 모바일 */
-      .hero-card { flex-direction: column; align-items: flex-start; padding: 14px 16px; }
+      .hero-card { flex-direction: column; align-items: flex-start; padding: 20px 16px; }
       .hero-divider { width: 100%; height: 1px; margin: 12px 0; }
       .hero-close { font-size: 1.5rem; }
 
@@ -1433,7 +1438,7 @@
     btn.textContent = '요청 중...';
     result.textContent = '';
     try {
-      const res = await fetch('/api/trigger-collect', { method: 'POST' });
+      const res = await fetch('/api/generate', { method: 'POST' });
       if (res.ok) {
         document.getElementById('collecting-overlay').style.display = 'flex';
         startProgressPolling(Date.now());
@@ -1781,6 +1786,37 @@
       return;
     }
 
+    function buildInstRows(s) {
+      return [
+        { label: '금융투자', net: s.finv_net },
+        { label: '보험',     net: s.ins_net },
+        { label: '투신',     net: s.trust_net },
+        { label: '사모',     net: s.private_net },
+        { label: '은행',     net: s.bank_net },
+        { label: '기타금융', net: s.etc_fin_net },
+        { label: '연기금',   net: s.pension_net },
+      ].map(d => {
+        const c = d.net != null ? cls(d.net) : 'flat';
+        return `<tr><td>${d.label}</td><td class="${c}"><strong>${fmtOk(d.net, true)}</strong></td></tr>`;
+      }).join('');
+    }
+
+    function buildBuySellRows(s) {
+      return [
+        { label: '기관합계',   buy: s.inst_buy,    sell: s.inst_sell,    net: s.inst_net },
+        { label: '개인',       buy: s.indiv_buy,   sell: s.indiv_sell,   net: s.indiv_net },
+        { label: '외국인합계', buy: s.foreign_buy, sell: s.foreign_sell, net: s.foreign_net },
+      ].map(r => {
+        const c = r.net != null ? cls(r.net) : 'flat';
+        return `<tr>
+          <td>${r.label}</td>
+          <td>${fmtOk(r.buy)}</td>
+          <td>${fmtOk(r.sell)}</td>
+          <td class="${c}"><strong>${fmtOk(r.net, true)}</strong></td>
+        </tr>`;
+      }).join('');
+    }
+
     const trendRows = recent5.map((r, i) => {
       const s = r.stocks?.[TICKER];
       if (!s) return '';
@@ -1788,7 +1824,7 @@
       const chgPctStr = ohlcv?.change_pct != null
         ? (ohlcv.change_pct > 0 ? '+' : '') + ohlcv.change_pct.toFixed(2) + '%'
         : '—';
-      return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
+      return `<tr class="investor-row${i === 0 ? ' investor-row-active' : ''}" data-idx="${i}" style="cursor:pointer; animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
         <td>${s.data_date}</td>
         <td><strong>${fmtW(ohlcv?.close)}</strong></td>
         <td class="${ohlcv?.change != null ? cls(ohlcv.change) : 'flat'}"><strong>${ohlcv?.change != null ? signFmt(ohlcv.change) + '원' : '—'}</strong></td>
@@ -1799,22 +1835,6 @@
         <td class="${s.foreign_net != null ? cls(s.foreign_net) : 'flat'}"><strong>${fmtOk(s.foreign_net, true)}</strong></td>
       </tr>`;
     }).join('');
-
-    const s = latestStock;
-    const detailRows = [
-      { label: '기관합계',   buy: s.inst_buy,    sell: s.inst_sell,    net: s.inst_net },
-      { label: '개인',       buy: s.indiv_buy,   sell: s.indiv_sell,   net: s.indiv_net },
-      { label: '외국인합계', buy: s.foreign_buy, sell: s.foreign_sell, net: s.foreign_net },
-    ];
-    const instDetails = [
-      { label: '금융투자', net: s.finv_net },
-      { label: '보험',     net: s.ins_net },
-      { label: '투신',     net: s.trust_net },
-      { label: '사모',     net: s.private_net },
-      { label: '은행',     net: s.bank_net },
-      { label: '기타금융', net: s.etc_fin_net },
-      { label: '연기금',   net: s.pension_net },
-    ];
 
     wrap.innerHTML = `
       <div class="card">
@@ -1828,39 +1848,37 @@
       </div>
       <div class="investor-grid">
         <div class="card">
-          <div class="card-title">기관 세부 순매수 (주)</div>
+          <div class="card-title" id="inv-inst-title">기관 세부 순매수 (주) · ${latestStock.data_date}</div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>구분</th><th>순매수</th></tr></thead>
-              <tbody>
-                ${instDetails.map((d, i) => {
-                  const c = d.net != null ? cls(d.net) : 'flat';
-                  return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms"><td>${d.label}</td><td class="${c}"><strong>${fmtOk(d.net, true)}</strong></td></tr>`;
-                }).join('')}
-              </tbody>
+              <tbody id="inv-inst-tbody">${buildInstRows(latestStock)}</tbody>
             </table>
           </div>
         </div>
         <div class="card">
-          <div class="card-title">최신 기준일 매수·매도 상세</div>
+          <div class="card-title" id="inv-detail-title">매수·매도 상세 · ${latestStock.data_date}</div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>구분</th><th>매수</th><th>매도</th><th>순매수</th></tr></thead>
-              <tbody>
-                ${detailRows.map((r, i) => {
-                  const c = r.net != null ? cls(r.net) : 'flat';
-                  return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
-                    <td>${r.label}</td>
-                    <td>${fmtOk(r.buy)}</td>
-                    <td>${fmtOk(r.sell)}</td>
-                    <td class="${c}"><strong>${fmtOk(r.net, true)}</strong></td>
-                  </tr>`;
-                }).join('')}
-              </tbody>
+              <tbody id="inv-detail-tbody">${buildBuySellRows(latestStock)}</tbody>
             </table>
           </div>
         </div>
       </div>`;
+
+    wrap.querySelectorAll('.investor-row').forEach(row => {
+      row.addEventListener('click', () => {
+        wrap.querySelectorAll('.investor-row').forEach(r => r.classList.remove('investor-row-active'));
+        row.classList.add('investor-row-active');
+        const s = recent5[parseInt(row.dataset.idx)]?.stocks?.[TICKER];
+        if (!s) return;
+        document.getElementById('inv-inst-tbody').innerHTML   = buildInstRows(s);
+        document.getElementById('inv-detail-tbody').innerHTML = buildBuySellRows(s);
+        document.getElementById('inv-inst-title').textContent   = `기관 세부 순매수 (주) · ${s.data_date}`;
+        document.getElementById('inv-detail-title').textContent = `매수·매도 상세 · ${s.data_date}`;
+      });
+    });
   }
 
   /* ── 탭4: 주가 차트 렌더 ── */
@@ -2233,6 +2251,12 @@
 
   /* ── AI 텍스트 등락 색상 후처리 ── */
   function colorizeChanges(html) {
+    // 원 단위 숫자 강조 (억원, 만원, 원)
+    html = html.replace(/(\d[\d,]*(?:\.\d+)?(?:만|억)?원)/g, '<strong>$1</strong>');
+    // 주 단위 숫자 강조
+    html = html.replace(/(\d[\d,]*(?:\.\d+)?주)/g, '<strong>$1</strong>');
+    // 부호 없는 퍼센트 강조 (부호·숫자·소수점 앞선 것 제외하여 소수 분리 방지)
+    html = html.replace(/(?<![+＋▲\-－▼.\d])(\d[\d,]*\.?\d*%)/g, '<strong>$1</strong>');
     // 상승률: 부호 있는 양수 퍼센트 (+X.XX%) → 빨강
     html = html.replace(/([+＋▲]\d[\d,]*\.?\d*\s*%)/g, '<span class="ai-rise">$1</span>');
     // 하락률: 부호 있는 음수 퍼센트 (-X.XX%) → 파랑
@@ -2252,13 +2276,15 @@
     }
 
     const normalized = comment.replace(/(###[^:\n]+:)[ \t]+/g, '$1\n');
+    // 문장 단위 줄바꿈: '다. 한글' 패턴을 마크다운 단락으로 분리
+    const withBreaks = normalized.replace(/(다\.) +([가-힣])/g, '$1\n\n$2');
     let html = '';
     if (comment) {
       html += `
         <div class="card">
           <div class="card-title">종목 분석 — 인카금융서비스 (${TICKER})<span class="ai-badge">AI</span></div>
           <div style="padding:16px 20px 20px;">
-            <div class="ai-text">${marked.parse(colorizeChanges(normalized))}</div>
+            <div class="ai-text">${marked.parse(colorizeChanges(withBreaks))}</div>
           </div>
         </div>`;
     }
