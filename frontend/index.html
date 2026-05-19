@@ -303,17 +303,15 @@
       color: #fff;
       border-radius: 12px;
       padding: 14px 18px 16px;
-      display: flex;
-      flex-direction: row;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
       align-items: center;
-      justify-content: flex-start;
-      gap: 20px;
       cursor: pointer;
       transition: opacity 0.15s;
     }
     .index-card:hover { opacity: 0.82; }
     .index-card-row { display: flex; align-items: center; justify-content: space-between; }
-    .index-info { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+    .index-info { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-self: center; }
     .index-name {
       font-size: 0.76rem;
       font-weight: 400;
@@ -324,7 +322,7 @@
     .index-delta .index-pct { font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 1px; }
     .index-value-row { display: flex; align-items: center; gap: 5px; }
     .index-right { display: flex; align-items: center; gap: 8px; }
-    .mini-spark { flex-shrink: 0; display: block; }
+    .mini-spark { display: block; grid-column: 3; justify-self: center; }
     .glow-dot {
       width: 7px; height: 7px;
       border-radius: 50%;
