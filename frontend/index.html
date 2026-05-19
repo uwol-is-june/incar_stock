@@ -291,11 +291,20 @@
       font-style: italic;
     }
 
+    /* ─── 1행 그리드 (인카 종가 6fr + 지수 4fr) ─── */
+    #top-row {
+      display: grid;
+      grid-template-columns: 6fr 4fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
     /* ─── KOSPI/KOSDAQ 지수 스트립 ─── */
     .index-strip {
       display: flex;
+      flex-direction: column;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 0;
     }
     .index-card {
       flex: 1;
@@ -350,8 +359,30 @@
       50%       { filter: drop-shadow(0 0 5px   rgba(59,130,246,0.1)); }
     }
 
-    /* ─── Hero 카드 (인카 종가 + AI 의견) ─── */
-    #hero-card { margin-bottom: 10px; }
+    /* ─── Hero 카드 (인카 종가) ─── */
+    #hero-card { margin-bottom: 0; }
+
+    /* ─── AI 종합 의견 (2행) ─── */
+    #ai-opinion-row {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      padding: 20px 32px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    #ai-opinion-row .opinion-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+    #ai-opinion-row .opinion-text {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
     .hero-card {
       background: var(--card-bg);
       border-radius: var(--card-radius);
@@ -573,8 +604,8 @@
       to   { opacity: 1; transform: translateY(0); }
     }
     header          { animation: fadeInDown 0.35s ease both; animation-delay: 0ms; }
-    #hero-card      { animation: fadeInDown 0.35s ease both; animation-delay: 80ms; }
-    .index-strip    { animation: fadeInDown 0.35s ease both; animation-delay: 160ms; }
+    #top-row        { animation: fadeInDown 0.35s ease both; animation-delay: 80ms; }
+    #ai-opinion-row { animation: fadeInDown 0.35s ease both; animation-delay: 160ms; }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0.4; }
@@ -761,16 +792,18 @@
       /* 차트 캔버스 크기 제한 */
       canvas { max-width: 100% !important; }
 
-      /* Hero 카드 */
-      #hero-card { margin-bottom: 8px; }
+      /* 1행 레이아웃 */
+      #top-row { display: grid !important; grid-template-columns: 6fr 4fr; gap: 8px; margin-bottom: 8px; }
+      #hero-card { margin-bottom: 0; }
+      #ai-opinion-row { display: block !important; margin-bottom: 8px; padding: 14px 24px; }
       .hero-close { font-size: 1.5rem !important; }
 
       /* 지수 스트립 — 배경·색상 강제 출력 */
       .index-strip {
         display: flex !important;
+        flex-direction: column !important;
         gap: 8px;
-        margin-top: 14px;
-        margin-bottom: 10px;
+        margin-bottom: 0;
       }
       .index-card {
         -webkit-print-color-adjust: exact;
@@ -900,14 +933,15 @@
       /* 본문 */
       main { margin: 10px auto; padding: 0 10px 20px; }
 
-      /* 지수 스트립 */
-      .index-strip { gap: 6px; }
+      /* 1행 → 모바일 단열 */
+      #top-row { grid-template-columns: 1fr; }
+      .index-strip { flex-direction: column; gap: 6px; margin-bottom: 0; }
       .index-card { padding: 10px 12px; }
       .index-value { font-size: 1rem; }
+      #ai-opinion-row { padding: 16px 20px; }
 
       /* Hero 카드 모바일 */
       .hero-card { flex-direction: column; align-items: flex-start; padding: 24px 20px; }
-      .hero-divider { width: 100%; height: 1px; margin: 14px 0; }
       .hero-close { font-size: 1.9rem; }
 
       /* 탭 네비게이션 가로 스크롤 */
@@ -1003,11 +1037,14 @@
 </header>
 
 <main>
-  <!-- Hero 카드: 인카 종가 + AI 한 줄 요약 -->
-  <div id="hero-card"></div>
+  <!-- 1행: 인카 종가(좌) + 코스피·코스닥 세로(우) -->
+  <div id="top-row">
+    <div id="hero-card"></div>
+    <div class="index-strip" id="index-strip"></div>
+  </div>
 
-  <!-- KOSPI / KOSDAQ 지수 스트립 -->
-  <div class="index-strip" id="index-strip"></div>
+  <!-- 2행: AI 종합 의견 -->
+  <div id="ai-opinion-row"></div>
 
   <!-- 탭 네비게이션 -->
   <nav class="tab-nav">
@@ -1715,25 +1752,16 @@
   /* ── 종가 배너 렌더 ── */
   function renderHeroCard(s, report) {
     const el = document.getElementById('hero-card');
-    if (!s) { el.innerHTML = ''; return; }
+    const opinionEl = document.getElementById('ai-opinion-row');
+    if (!s) {
+      el.innerHTML = '';
+      opinionEl.innerHTML = '';
+      opinionEl.style.display = 'none';
+      return;
+    }
 
     const c = cls(s.change_pct);
     const sign = s.change > 0 ? '+' : '';
-
-    const comment = report?.stocks?.[TICKER]?.comment;
-    let opinionHtml = '';
-    if (comment) {
-      const match = comment.match(/###\s*종합 의견:?\s*([\s\S]*?)(?=\n###|$)/);
-      const text = match ? match[1].trim().replace(/^[-*]\s*/, '') : null;
-      if (text) {
-        opinionHtml = `
-          <div class="hero-divider"></div>
-          <div class="hero-opinion">
-            <span class="opinion-label">AI 종합 의견</span>
-            <span class="opinion-text">${text}</span>
-          </div>`;
-      }
-    }
 
     el.innerHTML = `
       <div class="hero-card">
@@ -1746,8 +1774,23 @@
             &nbsp;(${sign}${s.change_pct != null ? s.change_pct + '%' : '—'})
           </div>
         </div>
-        ${opinionHtml}
       </div>`;
+
+    const comment = report?.stocks?.[TICKER]?.comment;
+    let text = null;
+    if (comment) {
+      const match = comment.match(/###\s*종합 의견:?\s*([\s\S]*?)(?=\n###|$)/);
+      text = match ? match[1].trim().replace(/^[-*]\s*/, '') : null;
+    }
+    if (text) {
+      opinionEl.innerHTML = `
+        <span class="opinion-label">AI 종합 의견</span>
+        <span class="opinion-text">${text}</span>`;
+      opinionEl.style.display = 'block';
+    } else {
+      opinionEl.innerHTML = '';
+      opinionEl.style.display = 'none';
+    }
   }
 
   /* ── 테이블 렌더 ── */
@@ -2324,6 +2367,9 @@
         document.getElementById('info-grid').innerHTML = '';
         document.getElementById('investor-wrap').innerHTML = '';
         document.getElementById('index-strip').innerHTML = '';
+        const aor = document.getElementById('ai-opinion-row');
+        aor.innerHTML = '';
+        aor.style.display = 'none';
         headerMeta.textContent = '';
         return;
       }
