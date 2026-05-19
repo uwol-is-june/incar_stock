@@ -2327,7 +2327,7 @@
 
     const normalized = comment.replace(/(###[^:\n]+:)[ \t]+/g, '$1\n');
     // 문장 단위 줄바꿈: '다. 한글' 패턴을 마크다운 단락으로 분리
-    const withBreaks = normalized.replace(/(다\.) +([가-힣])/g, '$1\n\n$2');
+    const withBreaks = normalized.replace(/(다\.) +([가-힣A-Z0-9])/g, '$1\n\n$2');
     let html = '';
     if (comment) {
       html += `
