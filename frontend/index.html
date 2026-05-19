@@ -1494,6 +1494,15 @@
     }
   });
 
+  /* ── 생성 일시 KST 포맷 ── */
+  function fmtGeneratedAt(raw) {
+    if (!raw) return '';
+    const d   = new Date(raw);
+    const kst = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+    const pad = n => String(n).padStart(2, '0');
+    return `${kst.getFullYear()}-${pad(kst.getMonth()+1)}-${pad(kst.getDate())} ${pad(kst.getHours())}:${pad(kst.getMinutes())}`;
+  }
+
   /* ── 숫자 포맷 ── */
   function fmt(n)  { return n != null ? Number(n).toLocaleString('ko-KR') : '—'; }
   function fmtW(n) { return n != null ? fmt(n) + '원' : '—'; }
@@ -2398,7 +2407,7 @@
 
       const selected = allReports.find(r => r.date === selectedDate) || allReports[0];
       renderFor(selected, allReports);
-      headerMeta.textContent = selected?.generated_at ? `생성 ${selected.generated_at}` : '';
+      headerMeta.textContent = selected?.generated_at ? `생성 ${fmtGeneratedAt(selected.generated_at)}` : '';
     } catch {
       headerMeta.textContent = '로드 실패';
     }
@@ -2416,7 +2425,7 @@
       allReports.sort((a, b) => b.date.localeCompare(a.date));
       const selected = allReports.find(r => r.date === selectedDate) || allReports[0];
       renderFor(selected, allReports);
-      headerMeta.textContent = selected?.generated_at ? `생성 ${selected.generated_at}` : '';
+      headerMeta.textContent = selected?.generated_at ? `생성 ${fmtGeneratedAt(selected.generated_at)}` : '';
     } catch {
       headerMeta.textContent = '로드 실패';
     }
