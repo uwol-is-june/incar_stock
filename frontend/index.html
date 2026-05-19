@@ -374,7 +374,7 @@
         "name   .      chart"
         "price  delta  chart"
         "price  pct    chart";
-      gap: 0 14px;
+      gap: 0 8px;
       cursor: pointer;
       transition: opacity 0.15s;
     }
@@ -440,23 +440,16 @@
 
     /* ─── AI 종합 의견 ─── */
     #ai-opinion-gradient {
-      background: var(--card-bg);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4, #10b981);
       border-radius: var(--card-radius);
       box-shadow: var(--card-shadow);
-      padding: 20px 32px;
+      padding: 2px;
       margin-bottom: 10px;
-      position: relative;
-      border: 2px solid transparent;
-      background-clip: padding-box;
     }
-    #ai-opinion-gradient::before {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: calc(var(--card-radius) + 2px);
-      background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4, #10b981);
-      z-index: -1;
-      border-radius: inherit;
+    #ai-opinion-gradient .opinion-inner {
+      background: var(--card-bg);
+      border-radius: calc(var(--card-radius) - 2px);
+      padding: 20px 32px;
     }
     #ai-opinion-gradient .opinion-label-gradient {
       font-size: 0.75rem;
@@ -486,7 +479,7 @@
       height: 100%;
       box-sizing: border-box;
     }
-    .hero-left { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .hero-left { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 32px; }
     .hero-label {
       font-size: 1.05rem;
       font-weight: 700;
@@ -890,7 +883,8 @@
       /* 1행 레이아웃 */
       #top-row { display: grid !important; grid-template-columns: 6fr 4fr; gap: 8px; margin-bottom: 8px; }
       #hero-card { margin-bottom: 0; }
-      #ai-opinion-gradient { display: block !important; margin-bottom: 8px; padding: 14px 24px; }
+      #ai-opinion-gradient { display: block !important; margin-bottom: 8px; }
+      #ai-opinion-gradient .opinion-inner { padding: 12px 22px; }
       .hero-close { font-size: 1.8rem !important; }
 
       /* 지수 스트립 — 배경·색상 강제 출력 */
@@ -1025,7 +1019,7 @@
       .index-strip { flex-direction: column; gap: 6px; margin-bottom: 0; }
       .index-card { padding: 10px 12px; gap: 0 8px; }
       .index-value { font-size: 1.5rem; }
-      #ai-opinion-gradient { padding: 16px 20px; }
+      #ai-opinion-gradient .opinion-inner { padding: 14px 18px; }
 
       /* Hero 카드 모바일 */
       .hero-card { flex-direction: column; align-items: stretch; padding: 24px 20px; }
@@ -1879,8 +1873,10 @@
     }
     if (text) {
       opinionGrad.innerHTML = `
-        <span class="opinion-label-gradient">AI 종합 의견</span>
-        <span class="opinion-text">${text}</span>`;
+        <div class="opinion-inner">
+          <span class="opinion-label-gradient">AI 종합 의견</span>
+          <span class="opinion-text">${text}</span>
+        </div>`;
       opinionGrad.style.display = 'block';
     } else {
       opinionGrad.innerHTML = '';
