@@ -304,26 +304,27 @@
       border-radius: 12px;
       padding: 14px 18px 16px;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      justify-content: center;
-      gap: 4px;
+      justify-content: space-between;
+      gap: 0;
       cursor: pointer;
       transition: opacity 0.15s;
     }
     .index-card:hover { opacity: 0.82; }
     .index-card-row { display: flex; align-items: center; justify-content: space-between; }
+    .index-info { display: flex; flex-direction: column; gap: 4px; }
     .index-name {
       font-size: 0.76rem;
       font-weight: 400;
       color: var(--text-header-meta);
     }
-    .index-value { font-size: 1.65rem; font-weight: 700; text-align: center; }
-    .index-delta { font-size: 0.82rem; font-weight: 600; text-align: center; }
-    .index-delta .index-pct { font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 1px; text-align: center; }
+    .index-value { font-size: 1.65rem; font-weight: 700; }
+    .index-delta { font-size: 0.82rem; font-weight: 600; }
+    .index-delta .index-pct { font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 1px; }
     .index-value-row { display: flex; align-items: center; gap: 5px; }
     .index-right { display: flex; align-items: center; gap: 8px; }
-    .mini-spark { flex-shrink: 0; display: block; margin-top: 4px; }
+    .mini-spark { flex-shrink: 0; display: block; }
     .glow-dot {
       width: 7px; height: 7px;
       border-radius: 50%;
@@ -356,7 +357,7 @@
     .hero-card {
       background: var(--card-bg);
       border-radius: var(--card-radius);
-      padding: 42px 28px;
+      padding: 44px 36px;
       display: flex;
       align-items: center;
       gap: 0;
@@ -369,27 +370,27 @@
       color: var(--text-primary);
       letter-spacing: 0.3px;
     }
-    .hero-date { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; margin-bottom: 8px; }
+    .hero-date { font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; margin-bottom: 14px; }
     .hero-close {
-      font-size: 2.2rem;
+      font-size: 2.8rem;
       font-weight: 800;
       letter-spacing: -1px;
       line-height: 1;
     }
-    .hero-change { font-size: 0.9rem; font-weight: 600; margin-top: 5px; }
+    .hero-change { font-size: 0.9rem; font-weight: 600; margin-top: 10px; }
     .hero-divider {
       width: 1px;
       background: var(--card-border);
       align-self: stretch;
       flex-shrink: 0;
-      margin: 0 22px;
+      margin: 0 32px;
     }
     .hero-opinion {
       flex: 1;
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 8px;
     }
 
     /* ─── 소진율 progress bar ─── */
@@ -782,7 +783,9 @@
         padding: 10px 14px;
         flex: 1;
         display: flex !important;
-        flex-direction: column;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
         cursor: default;
       }
       .index-card-row {
@@ -905,9 +908,9 @@
       .index-value { font-size: 1rem; }
 
       /* Hero 카드 모바일 */
-      .hero-card { flex-direction: column; align-items: flex-start; padding: 20px 16px; }
-      .hero-divider { width: 100%; height: 1px; margin: 12px 0; }
-      .hero-close { font-size: 1.5rem; }
+      .hero-card { flex-direction: column; align-items: flex-start; padding: 24px 20px; }
+      .hero-divider { width: 100%; height: 1px; margin: 14px 0; }
+      .hero-close { font-size: 1.9rem; }
 
       /* 탭 네비게이션 가로 스크롤 */
       .tab-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -1590,20 +1593,24 @@
     function indexCard(name, data, key) {
       if (!data || data.close == null) {
         return `<div class="index-card" data-index="${key}">
-          <div class="index-name">${name}</div>
-          <div class="index-value" style="color:#4b5563">—</div>
+          <div class="index-info">
+            <div class="index-name">${name}</div>
+            <div class="index-value" style="color:#4b5563">—</div>
+          </div>
         </div>`;
       }
       const c = data.change_pct >= 0 ? 'up' : 'down';
       const sign = data.change_pct >= 0 ? '+' : '';
       return `<div class="index-card" data-index="${key}">
-        <div class="index-name">${name}</div>
-        <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-        <div class="index-delta ${c}">
-          ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-          <span class="index-pct">${sign}${data.change_pct}%</span>
+        <div class="index-info">
+          <div class="index-name">${name}</div>
+          <div class="index-value">${data.close.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          <div class="index-delta ${c}">
+            ${sign}${data.change.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+            <span class="index-pct">${sign}${data.change_pct}%</span>
+          </div>
         </div>
-        <svg class="mini-spark" id="mini-spark-${key}" width="52" height="24" viewBox="0 0 52 24" style="overflow:visible"></svg>
+        <svg class="mini-spark" id="mini-spark-${key}" width="72" height="48" viewBox="0 0 72 48" style="overflow:visible"></svg>
       </div>`;
     }
 
@@ -1612,7 +1619,7 @@
     function drawMiniSparkline(svgId, history, isUp) {
       const el = document.getElementById(svgId);
       if (!el || !history || history.length < 2) return;
-      const w = 52, h = 24, pad = 2;
+      const w = 72, h = 48, pad = 3;
       const vals = history.slice(-15).map(h => h.close);
       const min = Math.min(...vals), max = Math.max(...vals);
       const range = max - min || 1;
