@@ -9,6 +9,61 @@
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
   <link rel="icon" type="image/png" href="/img/incar_logo.png" />
   <style>
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-1Thin.woff2') format('woff2');
+      font-weight: 100;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-2ExtraLight.woff2') format('woff2');
+      font-weight: 200;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-3Light.woff2') format('woff2');
+      font-weight: 300;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-4Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-5Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-6SemiBold.woff2') format('woff2');
+      font-weight: 600;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-7Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-8ExtraBold.woff2') format('woff2');
+      font-weight: 800;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Presentation';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-9Black.woff2') format('woff2');
+      font-weight: 900;
+      font-display: swap;
+    }
+
     :root {
       --bg: #f4f6f9;
       --text: #1a1a2e;
@@ -313,7 +368,7 @@
       border-radius: 12px;
       padding: 14px 18px 16px;
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: 1.6fr 1fr;
       align-items: center;
       cursor: pointer;
       transition: opacity 0.15s;
@@ -383,6 +438,69 @@
       line-height: 1.85;
       color: var(--text-main);
     }
+
+    /* ─── AI 종합 의견 — 글래스모피즘 버전 ─── */
+    #ai-opinion-glass {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: var(--card-radius);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10), inset 0 1px 0 rgba(255,255,255,0.18);
+      padding: 20px 32px;
+      margin-bottom: 10px;
+    }
+    #ai-opinion-glass .opinion-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: rgba(100, 116, 139, 0.9);
+      margin-bottom: 6px;
+      display: block;
+      letter-spacing: 0.3px;
+    }
+    #ai-opinion-glass .opinion-text {
+      font-size: 1rem;
+      line-height: 1.85;
+      color: var(--text-main);
+    }
+
+    /* ─── AI 종합 의견 — 그라데이션 보더·타이틀 버전 ─── */
+    #ai-opinion-gradient {
+      background: var(--card-bg);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      padding: 20px 32px;
+      margin-bottom: 10px;
+      position: relative;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    #ai-opinion-gradient::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: calc(var(--card-radius) + 2px);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4, #10b981);
+      z-index: -1;
+      border-radius: inherit;
+    }
+    #ai-opinion-gradient .opinion-label-gradient {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+      display: block;
+    }
+    #ai-opinion-gradient .opinion-text {
+      font-size: 1rem;
+      line-height: 1.85;
+      color: var(--text-main);
+    }
+
     .hero-card {
       background: var(--card-bg);
       border-radius: var(--card-radius);
@@ -394,15 +512,16 @@
       height: 100%;
       box-sizing: border-box;
     }
-    .hero-left { flex-shrink: 0; }
+    .hero-left { flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between; }
     .hero-label {
       font-size: 0.9rem;
       font-weight: 700;
       color: var(--text-primary);
       letter-spacing: 0.3px;
     }
-    .hero-date { font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; margin-bottom: 20px; }
+    .hero-date { font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; }
     .hero-close {
+      font-family: 'Presentation', sans-serif;
       font-size: 3.6rem;
       font-weight: 800;
       letter-spacing: -1px;
@@ -1047,6 +1166,8 @@
 
   <!-- 2행: AI 종합 의견 -->
   <div id="ai-opinion-row"></div>
+  <div id="ai-opinion-glass" style="display:none"></div>
+  <div id="ai-opinion-gradient" style="display:none"></div>
 
   <!-- 탭 네비게이션 -->
   <nav class="tab-nav">
@@ -1656,7 +1777,7 @@
             <span class="index-pct">${sign}${data.change_pct}%</span>
           </div>
         </div>
-        <svg class="mini-spark" id="mini-spark-${key}" width="72" height="48" viewBox="0 0 72 48" style="overflow:visible"></svg>
+        <svg class="mini-spark" id="mini-spark-${key}" width="90" height="60" viewBox="0 0 90 60" style="overflow:visible"></svg>
       </div>`;
     }
 
@@ -1665,7 +1786,7 @@
     function drawMiniSparkline(svgId, history, isUp) {
       const el = document.getElementById(svgId);
       if (!el || !history || history.length < 2) return;
-      const w = 72, h = 48, pad = 3;
+      const w = 90, h = 60, pad = 4;
       const vals = history.slice(-15).map(h => h.close);
       const min = Math.min(...vals), max = Math.max(...vals);
       const range = max - min || 1;
@@ -1763,11 +1884,12 @@
   /* ── 종가 배너 렌더 ── */
   function renderHeroCard(s, report) {
     const el = document.getElementById('hero-card');
-    const opinionEl = document.getElementById('ai-opinion-row');
+    const opinionEl     = document.getElementById('ai-opinion-row');
+    const opinionGlass  = document.getElementById('ai-opinion-glass');
+    const opinionGrad   = document.getElementById('ai-opinion-gradient');
     if (!s) {
       el.innerHTML = '';
-      opinionEl.innerHTML = '';
-      opinionEl.style.display = 'none';
+      [opinionEl, opinionGlass, opinionGrad].forEach(e => { e.innerHTML = ''; e.style.display = 'none'; });
       return;
     }
 
@@ -1777,12 +1899,16 @@
     el.innerHTML = `
       <div class="hero-card">
         <div class="hero-left">
-          <div class="hero-label">인카금융서비스 · 211050</div>
-          <div class="hero-date">${s.data_date}</div>
-          <div class="hero-close ${c}">${s.close != null ? s.close.toLocaleString('ko-KR') + '원' : '—'}</div>
-          <div class="hero-change ${c}">
-            ${sign}${s.change != null ? s.change.toLocaleString('ko-KR') : '—'}원
-            &nbsp;(${sign}${s.change_pct != null ? s.change_pct + '%' : '—'})
+          <div>
+            <div class="hero-label">인카금융서비스 · 211050</div>
+            <div class="hero-date">${s.data_date}</div>
+          </div>
+          <div>
+            <div class="hero-close ${c}">${s.close != null ? s.close.toLocaleString('ko-KR') + '원' : '—'}</div>
+            <div class="hero-change ${c}">
+              ${sign}${s.change != null ? s.change.toLocaleString('ko-KR') : '—'}원
+              &nbsp;(${sign}${s.change_pct != null ? s.change_pct + '%' : '—'})
+            </div>
           </div>
         </div>
       </div>`;
@@ -1798,9 +1924,18 @@
         <span class="opinion-label">AI 종합 의견</span>
         <span class="opinion-text">${text}</span>`;
       opinionEl.style.display = 'block';
+
+      opinionGlass.innerHTML = `
+        <span class="opinion-label">AI 종합 의견</span>
+        <span class="opinion-text">${text}</span>`;
+      opinionGlass.style.display = 'block';
+
+      opinionGrad.innerHTML = `
+        <span class="opinion-label-gradient">AI 종합 의견</span>
+        <span class="opinion-text">${text}</span>`;
+      opinionGrad.style.display = 'block';
     } else {
-      opinionEl.innerHTML = '';
-      opinionEl.style.display = 'none';
+      [opinionEl, opinionGlass, opinionGrad].forEach(e => { e.innerHTML = ''; e.style.display = 'none'; });
     }
   }
 
