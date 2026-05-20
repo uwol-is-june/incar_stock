@@ -367,7 +367,7 @@
       background: #0d1b2a;
       color: #fff;
       border-radius: 12px;
-      padding: 16px 24px;
+      padding: 16px 32px;
       display: grid;
       grid-template-columns: 1fr auto auto;
       grid-template-rows: auto auto auto;
@@ -375,7 +375,7 @@
         "name   .      chart"
         "price  delta  chart"
         "price  pct    chart";
-      gap: 0 4px;
+      gap: 0 20px;
       align-content: center;
       cursor: pointer;
       transition: opacity 0.15s;
@@ -2025,12 +2025,18 @@
   }
 
   /* ── 탭4: 주가 차트 렌더 ── */
-  function renderChart(ohlcv7d, stockData = null, noAnimation = false) {
+  function renderChart(ohlcv7d, stockData = null, noAnimation = false, onAllDone = null) {
     if (priceChart) { priceChart.destroy(); priceChart = null; }
     if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
 
     const sorted = [...(ohlcv7d ?? [])].reverse(); // 오래된 날짜부터 정렬
-    if (!sorted.length) return;
+    if (!sorted.length) { if (onAllDone) onAllDone(); return; }
+
+    // 차트 수를 미리 확정해 onAllDone 콜백 타이밍을 정확하게 제어
+    const annualData = (stockData?.ohlcv_1y || []).map(d => ({ x: d.date, y: d.close }));
+    let pendingCharts = 2 + (annualData.length > 0 ? 1 : 0);
+    let doneCharts = 0;
+    function onChartDone() { if (++doneCharts >= pendingCharts && onAllDone) onAllDone(); }
 
     const dateLabels = sorted.map(d => {
       const dt = new Date(d.date + 'T00:00:00+09:00');
@@ -2061,7 +2067,7 @@
       },
       options: {
         responsive: true,
-        animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
+        animation: noAnimation ? { duration: 0, onComplete: onChartDone } : { duration: 600, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2108,7 +2114,7 @@
       },
       options: {
         responsive: true,
-        animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
+        animation: noAnimation ? { duration: 0, onComplete: onChartDone } : { duration: 600, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2126,7 +2132,6 @@
     });
 
     if (annualChart) { annualChart.destroy(); annualChart = null; }
-    const annualData = (stockData?.ohlcv_1y || []).map(d => ({ x: d.date, y: d.close }));
     if (annualData.length > 0) {
       const ctx3 = document.getElementById('annual-chart').getContext('2d');
       annualChart = new Chart(ctx3, {
@@ -2146,7 +2151,7 @@
         options: {
           responsive: true,
           interaction: { mode: 'index', intersect: false },
-          animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
+          animation: noAnimation ? { duration: 0, onComplete: onChartDone } : { duration: 600, easing: 'easeOutQuart' },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -2616,8 +2621,9 @@
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        renderChart(_printOhlcv7d, _printStockData, true);
-        _chartPreRenderDone = true;
+        renderChart(_printOhlcv7d, _printStockData, true, () => {
+          _chartPreRenderDone = true;
+        });
       }));
     }
   });
@@ -2663,12 +2669,14 @@
     }
 
     if (chartPreRendered) {
-      // 이미 사전 렌더링됨: visibility만 복원 후 바로 인쇄
+      // 이미 사전 렌더링됨: visibility 복원 후 한 프레임 대기 후 인쇄
       chartTabEl.style.visibility = '';
-      captureChartsToImages();
-      window.print();
-      chartTabEl.style.display = '';
-      doAfterPrint();
+      requestAnimationFrame(() => {
+        captureChartsToImages();
+        window.print();
+        chartTabEl.style.display = '';
+        doAfterPrint();
+      });
     } else if (needsChartInit) {
       // 폴백: 모달을 매우 빠르게 닫은 경우 (사전 렌더링 미완료)
       chartTabEl.style.display = 'block';
