@@ -862,7 +862,7 @@
       /* 전체 레이아웃 */
       body { background: #fff !important; }
       * { animation: none !important; transition: none !important; }
-      main { max-width: 100% !important; margin: 0 !important; padding: 0 8px !important; }
+      main { max-width: 100% !important; margin: 0 !important; padding: 14px 8px 0 !important; }
       header { padding: 10px 20px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
       /* 탭 패널 표시 제어 */
@@ -887,8 +887,26 @@
       /* 1행 레이아웃 */
       #top-row { display: grid !important; grid-template-columns: 6fr 4fr; gap: 8px; margin-bottom: 8px; }
       #hero-card { margin-bottom: 0; }
-      #ai-opinion-gradient { display: block !important; margin-bottom: 8px; }
-      #ai-opinion-gradient .opinion-inner { padding: 12px 22px; }
+      #ai-opinion-gradient {
+        display: block !important;
+        margin-bottom: 8px;
+        background: none !important;
+        border: 2px solid #4338ca !important;
+        border-radius: 10px !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      #ai-opinion-gradient .opinion-inner {
+        background: #ffffff !important;
+        border-radius: 8px !important;
+        padding: 12px 22px;
+      }
+      #ai-opinion-gradient .opinion-label-gradient {
+        -webkit-text-fill-color: #4338ca !important;
+        background: none !important;
+        color: #4338ca !important;
+      }
       .hero-close { font-size: 1.8rem !important; }
 
       /* 지수 스트립 — 배경·색상 강제 출력 */
@@ -930,6 +948,33 @@
         border-radius: 6px;
         margin-bottom: 10px;
         page-break-after: avoid;
+      }
+
+      /* AI 분석 텍스트 컬러 강제 출력 */
+      .ai-text h3 {
+        color: #4338ca !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .ai-rise {
+        color: #e03131 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .ai-fall {
+        color: #1971c2 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Hero 카드 padding/gap 압축 */
+      .hero-card    { padding: 20px 24px !important; height: auto !important; }
+      .hero-left    { gap: 16px !important; }
+      .hero-divider { margin: 0 20px !important; }
+
+      /* 폰트 폴백: CDN 폰트 로드 실패 시 시스템 한국어 폰트 사용 */
+      body {
+        font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
       }
 
       /* 페이지 나누기 */
