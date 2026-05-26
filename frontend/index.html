@@ -2108,8 +2108,8 @@
         }]
       },
       options: {
-        responsive: true,
-        animation: noAnimation ? false : { duration: 600, easing: 'easeOutQuart' },
+        responsive: !noAnimation,
+        animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2155,8 +2155,8 @@
         }]
       },
       options: {
-        responsive: true,
-        animation: noAnimation ? false : { duration: 600, easing: 'easeOutQuart' },
+        responsive: !noAnimation,
+        animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2191,9 +2191,9 @@
           }]
         },
         options: {
-          responsive: true,
+          responsive: !noAnimation,
           interaction: { mode: 'index', intersect: false },
-          animation: noAnimation ? false : { duration: 600, easing: 'easeOutQuart' },
+          animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -2222,7 +2222,7 @@
 
     // Chart.js는 new Chart() 내부에서 RAF를 예약해 그린다.
     // 우리가 그 직후 RAF를 예약하면, Chart.js draw RAF → onAllDone RAF 순서가 보장된다.
-    if (onAllDone) requestAnimationFrame(() => requestAnimationFrame(onAllDone));
+    if (onAllDone) requestAnimationFrame(onAllDone);
   }
 
   /* ── 탭5: 데이터 정합성 체크 ── */
