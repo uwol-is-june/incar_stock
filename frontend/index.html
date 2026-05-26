@@ -2740,9 +2740,11 @@
           canvas.style.display = 'none';
           canvas.parentNode.insertBefore(img, canvas.nextSibling);
         });
+        window.addEventListener('afterprint', () => {
+          chartTabEl.style.display = '';
+          doAfterPrint();
+        }, { once: true });
         window.print();
-        chartTabEl.style.display = '';
-        doAfterPrint();
       });
     } else if (needsChartInit) {
       // 폴백: 모달을 매우 빠르게 닫은 경우 (사전 렌더링 미완료)
@@ -2754,16 +2756,18 @@
           requestAnimationFrame(() => { // ResizeObserver 재렌더 완료 대기
             chartTabEl.style.visibility = '';
             captureChartsToImages();
+            window.addEventListener('afterprint', () => {
+              chartTabEl.style.display = '';
+              doAfterPrint();
+            }, { once: true });
             window.print();
-            chartTabEl.style.display = '';
-            doAfterPrint();
           });
         });
       }));
     } else {
       captureChartsToImages();
+      window.addEventListener('afterprint', doAfterPrint, { once: true });
       window.print();
-      doAfterPrint();
     }
   });
 
