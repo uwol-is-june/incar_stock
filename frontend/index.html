@@ -2669,13 +2669,16 @@
     if (!chartTabEl.classList.contains('active') && _printOhlcv7d) {
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
+      void chartTabEl.offsetWidth; // 동기 레이아웃 강제 → canvas 폭 0 방지
       requestAnimationFrame(() => requestAnimationFrame(() => {
         renderChart(_printOhlcv7d, _printStockData, true, () => {
-          _capturedChartURLs = {};
-          document.querySelectorAll('#tab-chart canvas').forEach(c => {
-            _capturedChartURLs[c.id] = c.toDataURL('image/png');
+          requestAnimationFrame(() => { // ResizeObserver 재렌더 완료 대기
+            _capturedChartURLs = {};
+            document.querySelectorAll('#tab-chart canvas').forEach(c => {
+              _capturedChartURLs[c.id] = c.toDataURL('image/png');
+            });
+            _chartPreRenderDone = true;
           });
-          _chartPreRenderDone = true;
         });
       }));
     }
@@ -2745,13 +2748,16 @@
       // 폴백: 모달을 매우 빠르게 닫은 경우 (사전 렌더링 미완료)
       chartTabEl.style.display = 'block';
       chartTabEl.style.visibility = 'hidden';
+      void chartTabEl.offsetWidth; // 동기 레이아웃 강제 → canvas 폭 0 방지
       requestAnimationFrame(() => requestAnimationFrame(() => {
         renderChart(_printOhlcv7d, _printStockData, true, () => {
-          chartTabEl.style.visibility = '';
-          captureChartsToImages();
-          window.print();
-          chartTabEl.style.display = '';
-          doAfterPrint();
+          requestAnimationFrame(() => { // ResizeObserver 재렌더 완료 대기
+            chartTabEl.style.visibility = '';
+            captureChartsToImages();
+            window.print();
+            chartTabEl.style.display = '';
+            doAfterPrint();
+          });
         });
       }));
     } else {
