@@ -2080,6 +2080,12 @@
 
     const annualData = (stockData?.ohlcv_1y || []).map(d => ({ x: d.date, y: d.close }));
 
+    let _doneCount = 0;
+    const _totalCharts = annualData.length > 0 ? 3 : 2;
+    function _onChartDone() {
+      if (onAllDone && ++_doneCount >= _totalCharts) onAllDone();
+    }
+
     const dateLabels = sorted.map(d => {
       const dt = new Date(d.date + 'T00:00:00+09:00');
       return `${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getDate()).padStart(2, '0')}`;
@@ -2108,8 +2114,8 @@
         }]
       },
       options: {
-        responsive: !noAnimation,
-        animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
+        responsive: true,
+        animation: noAnimation ? { duration: 0, onComplete: _onChartDone } : { duration: 600, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2155,8 +2161,8 @@
         }]
       },
       options: {
-        responsive: !noAnimation,
-        animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
+        responsive: true,
+        animation: noAnimation ? { duration: 0, onComplete: _onChartDone } : { duration: 600, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2191,9 +2197,9 @@
           }]
         },
         options: {
-          responsive: !noAnimation,
+          responsive: true,
           interaction: { mode: 'index', intersect: false },
-          animation: noAnimation ? { duration: 0 } : { duration: 600, easing: 'easeOutQuart' },
+          animation: noAnimation ? { duration: 0, onComplete: _onChartDone } : { duration: 600, easing: 'easeOutQuart' },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -2220,9 +2226,6 @@
       });
     }
 
-    // Chart.js는 new Chart() 내부에서 RAF를 예약해 그린다.
-    // 우리가 그 직후 RAF를 예약하면, Chart.js draw RAF → onAllDone RAF 순서가 보장된다.
-    if (onAllDone) requestAnimationFrame(onAllDone);
   }
 
   /* ── 탭5: 데이터 정합성 체크 ── */
