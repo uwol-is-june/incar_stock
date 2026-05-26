@@ -2652,6 +2652,22 @@
     });
   }
 
+  // data: URL 이미지 디코딩 완료 후 window.print() — Chrome이 스냅샷 찍기 전에 naturalHeight > 0 보장
+  function printWhenImagesReady() {
+    const imgs = [...document.querySelectorAll('.chart-print-img')];
+    if (!imgs.length) { window.print(); return; }
+    let remaining = imgs.length;
+    const proceed = () => { if (--remaining <= 0) window.print(); };
+    imgs.forEach(img => {
+      if (img.complete && img.naturalWidth > 0) {
+        proceed();
+      } else {
+        img.addEventListener('load', proceed, { once: true });
+        img.addEventListener('error', proceed, { once: true });
+      }
+    });
+  }
+
   window.addEventListener('afterprint', () => {
     document.querySelectorAll('.chart-print-img').forEach(img => img.remove());
     document.querySelectorAll('canvas').forEach(canvas => { canvas.style.display = ''; });
@@ -2744,7 +2760,7 @@
           chartTabEl.style.display = '';
           doAfterPrint();
         }, { once: true });
-        window.print();
+        printWhenImagesReady();
       });
     } else if (needsChartInit) {
       // 폴백: 모달을 매우 빠르게 닫은 경우 (사전 렌더링 미완료)
@@ -2760,14 +2776,14 @@
               chartTabEl.style.display = '';
               doAfterPrint();
             }, { once: true });
-            window.print();
+            printWhenImagesReady();
           });
         });
       }));
     } else {
       captureChartsToImages();
       window.addEventListener('afterprint', doAfterPrint, { once: true });
-      window.print();
+      printWhenImagesReady();
     }
   });
 
