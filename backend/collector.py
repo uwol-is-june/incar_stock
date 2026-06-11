@@ -406,14 +406,15 @@ def collect() -> dict[str, dict]:
             _ch = (_c - _prev_c) if _prev_c is not None else None
             _ch_pct = round(_ch / _prev_c * 100, 2) if _prev_c else None
             ohlcv_7d.append({
-                "date":       _idx.date().isoformat(),
-                "open":       int(_row["시가"]),
-                "high":       int(_row["고가"]),
-                "low":        int(_row["저가"]),
-                "close":      _c,
-                "volume":     int(_row["거래량"]),
-                "change":     _ch,
-                "change_pct": _ch_pct,
+                "date":          _idx.date().isoformat(),
+                "open":          int(_row["시가"]),
+                "high":          int(_row["고가"]),
+                "low":           int(_row["저가"]),
+                "close":         _c,
+                "volume":        int(_row["거래량"]),
+                "trading_value": int(_row["거래대금"]) if "거래대금" in _row.index else None,
+                "change":        _ch,
+                "change_pct":    _ch_pct,
             })
             _prev_c = _c
         ohlcv_7d.reverse()
@@ -633,14 +634,15 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
             _ch = (_c - _prev_c) if _prev_c is not None else None
             _ch_pct = round(_ch / _prev_c * 100, 2) if _prev_c else None
             ohlcv_7d.append({
-                "date":       _idx.date().isoformat(),
-                "open":       int(_row["시가"]),
-                "high":       int(_row["고가"]),
-                "low":        int(_row["저가"]),
-                "close":      _c,
-                "volume":     int(_row["거래량"]),
-                "change":     _ch,
-                "change_pct": _ch_pct,
+                "date":          _idx.date().isoformat(),
+                "open":          int(_row["시가"]),
+                "high":          int(_row["고가"]),
+                "low":           int(_row["저가"]),
+                "close":         _c,
+                "volume":        int(_row["거래량"]),
+                "trading_value": int(_row["거래대금"]) if "거래대금" in _row.index else None,
+                "change":        _ch,
+                "change_pct":    _ch_pct,
             })
             _prev_c = _c
         ohlcv_7d.reverse()

@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 FRONTEND_DIR = BASE_DIR / "frontend"
 
 
-def _backfill_history(days_to_check: int = 10, max_missing: int = 5):
+def _backfill_history(days_to_check: int = 14, max_missing: int = 10):
     """과거 7영업일 리포트가 없으면 자동으로 백필."""
     today = date.today()
     filled = 0
@@ -55,7 +55,7 @@ def _backfill_history(days_to_check: int = 10, max_missing: int = 5):
         filled += 1
         if filled < max_missing:
             time.sleep(2)  # rate limit 방어
-    reporter.prune(5)
+    reporter.prune(10)
 
 
 def _patch_ohlcv_7d():
@@ -113,7 +113,7 @@ async def _auto_collect_job():
         if stocks:
             enriched, market_summary = analyzer.analyze(stocks)
             reporter.save(today, enriched, market_summary)
-            reporter.prune(5)
+            reporter.prune(10)
             logger.info("[scheduler] %s 자동 수집 완료 (%d종목)", today, len(stocks))
     except Exception as e:
         logger.error("[scheduler] %s 자동 수집 실패: %s", today, e)
@@ -191,7 +191,7 @@ def generate(background_tasks: BackgroundTasks):
     date_str = max(data_dates) if data_dates else date.today().isoformat()
 
     reporter.save(date_str, enriched, market_summary)
-    reporter.prune(5)
+    reporter.prune(10)
 
     # 과거 5영업일 백필 — 응답 반환 후 백그라운드에서 실행
     background_tasks.add_task(_backfill_history)

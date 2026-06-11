@@ -29,7 +29,7 @@ def main() -> None:
     data_date = next(iter(stocks.values()))["data_date"]
     enriched, market_summary = analyzer.analyze(stocks)
     reporter.save(data_date, enriched, market_summary)  # save() → update_index() 자동 호출
-    reporter.prune(5)                 # prune() → update_index() 자동 호출
+    reporter.prune(10)                # prune() → update_index() 자동 호출
     logger.info("[run_collect] %s 완료 (data_date=%s)", today, data_date)
 
 
