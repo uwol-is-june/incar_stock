@@ -1961,7 +1961,12 @@
     const wrap = document.getElementById('investor-wrap');
     if (!latestStock) { wrap.innerHTML = ''; return; }
 
-    const recent10 = allReports.slice(0, 10);
+    const _seen = new Set();
+    const recent10 = allReports.filter(r => {
+      const d = r.stocks?.[TICKER]?.data_date;
+      if (!d || _seen.has(d)) return false;
+      _seen.add(d); return true;
+    }).slice(0, 10);
     const hasAnyData = recent10.some(r => {
       const s = r.stocks?.[TICKER];
       return s && [s.inst_net, s.indiv_net, s.foreign_net].some(v => v != null);
