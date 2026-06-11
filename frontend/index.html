@@ -1640,8 +1640,8 @@
   function fmtCap(n) {
     if (n == null) return null;
     const ok = n / 1e8;
-    if (ok >= 10000) return (ok / 10000).toFixed(2) + '조원';
-    if (ok >= 10)    return ok.toFixed(2) + '억원';
+    if (ok >= 10000) return Number((ok / 10000).toFixed(2)).toLocaleString('ko-KR') + '조원';
+    if (ok >= 10)    return Math.round(ok).toLocaleString('ko-KR') + '억원';
     return Math.round(n / 1e4).toLocaleString('ko-KR') + '만원';
   }
 
