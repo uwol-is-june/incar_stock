@@ -470,10 +470,19 @@ def collect() -> dict[str, dict]:
         # 시총 순위: 장 마감 후 확정 데이터만 유효 — 장중엔 KRX가 당일 데이터 미완성
         cap_rank = _fetch_market_cap_ranking(ticker, data_date_ymd) if closed else None
 
-        _pbr    = _safe_float(_latest(df_fund, "PBR"))
-        _bps    = _safe_int(_latest(df_fund, "BPS"))
-        _listed = _safe_int(_at_date(df_cap, data_date, "상장주식수"))
-        _equity = _bps * _listed if _bps and _listed else None
+        _listed     = _safe_int(_at_date(df_cap, data_date, "상장주식수"))
+        _eps_pykrx  = _safe_int(_latest(df_fund, "EPS"))
+        _bps_pykrx  = _safe_int(_latest(df_fund, "BPS"))
+        _per_pykrx  = _safe_float(_latest(df_fund, "PER"))
+        _pbr_pykrx  = _safe_float(_latest(df_fund, "PBR"))
+
+        # pykrx null 시 DART 데이터로 폴백 계산
+        _bps_dart = int(dart_equity / _listed) if dart_equity and _listed else None
+        _eps_dart = int(net_income_ttm / _listed) if net_income_ttm and _listed else None
+        _bps = _bps_pykrx if _bps_pykrx is not None else _bps_dart
+        _eps = _eps_pykrx if _eps_pykrx is not None else _eps_dart
+        _pbr = _pbr_pykrx if _pbr_pykrx is not None else (round(curr_close / _bps_dart, 2) if _bps_dart else None)
+        _per = _per_pykrx if _per_pykrx is not None else (round(curr_close / _eps_dart, 2) if _eps_dart else None)
 
         result[ticker] = {
             "close":       curr_close,
@@ -496,11 +505,11 @@ def collect() -> dict[str, dict]:
             # 보조 API — 펀더멘털 (None 허용)
             "market_cap":      _safe_int(_at_date(df_cap, data_date, "시가총액")),
             "listed_shares":   _listed,
-            "per":             _safe_float(_latest(df_fund, "PER")),
+            "per":             _per,
             "pbr":             _pbr,
-            "eps":             _safe_int(_latest(df_fund, "EPS")),
+            "eps":             _eps,
             "bps":             _bps,
-            "equity":          dart_equity or _equity,
+            "equity":          dart_equity,
             "foreign_pct":     _safe_float(_latest(df_foreign, "지분율")),
             "exhaustion_rate": _safe_float(_latest(df_foreign, "한도소진율")),
             "cap_rank":        cap_rank,
@@ -533,6 +542,12 @@ def collect() -> dict[str, dict]:
             # 기업 주요변경이력 (TASK-002)
             "company_info": company_info,
         }
+
+        # ohlcv_7d.trading_value: get_market_ohlcv()에 거래대금 없으므로 df_cap에서 후채움
+        if df_cap is not None:
+            for entry in ohlcv_7d:
+                if entry["trading_value"] is None:
+                    entry["trading_value"] = _safe_int(_at_date(df_cap, entry["date"], "거래대금"))
 
     return result
 
@@ -620,9 +635,20 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
         _ttm_fd = [q["net_income"] for q in dart_fins_fd if q.get("net_income") is not None]
         net_income_ttm_fd = sum(_ttm_fd) if len(_ttm_fd) == 4 else None
 
-        _bps_fd    = _safe_int(_latest(df_fund, "BPS"))
-        _listed_fd = _safe_int(_at_date(df_cap, target_date, "상장주식수"))
-        _equity_fd = dart_equity_fd or (_bps_fd * _listed_fd if _bps_fd and _listed_fd else None)
+        _listed_fd    = _safe_int(_at_date(df_cap, target_date, "상장주식수"))
+        _eps_pykrx_fd = _safe_int(_latest(df_fund, "EPS"))
+        _bps_pykrx_fd = _safe_int(_latest(df_fund, "BPS"))
+        _per_pykrx_fd = _safe_float(_latest(df_fund, "PER"))
+        _pbr_pykrx_fd = _safe_float(_latest(df_fund, "PBR"))
+
+        # pykrx null 시 DART 데이터로 폴백 계산
+        _bps_dart_fd = int(dart_equity_fd / _listed_fd) if dart_equity_fd and _listed_fd else None
+        _eps_dart_fd = int(net_income_ttm_fd / _listed_fd) if net_income_ttm_fd and _listed_fd else None
+        _bps_fd = _bps_pykrx_fd if _bps_pykrx_fd is not None else _bps_dart_fd
+        _eps_fd = _eps_pykrx_fd if _eps_pykrx_fd is not None else _eps_dart_fd
+        _pbr_fd = _pbr_pykrx_fd if _pbr_pykrx_fd is not None else (round(curr_close / _bps_dart_fd, 2) if _bps_dart_fd else None)
+        _per_fd = _per_pykrx_fd if _per_pykrx_fd is not None else (round(curr_close / _eps_dart_fd, 2) if _eps_dart_fd else None)
+        _equity_fd = dart_equity_fd
 
         # 최근 7거래일 OHLCV 내장
         _n = len(df)
@@ -646,6 +672,12 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
             })
             _prev_c = _c
         ohlcv_7d.reverse()
+
+        # ohlcv_7d.trading_value: get_market_ohlcv()에 거래대금 없으므로 df_cap에서 후채움
+        if df_cap is not None:
+            for entry in ohlcv_7d:
+                if entry["trading_value"] is None:
+                    entry["trading_value"] = _safe_int(_at_date(df_cap, entry["date"], "거래대금"))
 
         # 1년치 종가 (장기 라인 차트용)
         start_1y = (target_dt - timedelta(days=365)).strftime("%Y%m%d")
@@ -678,9 +710,9 @@ def collect_for_date(target_date: str) -> dict[str, dict]:
             "week52_low":      week52_low,
             "market_cap":      _safe_int(_at_date(df_cap, target_date, "시가총액")),
             "listed_shares":   _listed_fd,
-            "per":             _safe_float(_latest(df_fund, "PER")),
-            "pbr":             _safe_float(_latest(df_fund, "PBR")),
-            "eps":             _safe_int(_latest(df_fund, "EPS")),
+            "per":             _per_fd,
+            "pbr":             _pbr_fd,
+            "eps":             _eps_fd,
             "bps":             _bps_fd,
             "equity":          _equity_fd,
             "foreign_pct":     _safe_float(_latest(df_foreign, "지분율")),
