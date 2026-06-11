@@ -1665,8 +1665,8 @@
     if (!s) { grid.innerHTML = ''; return; }
     const priceCards = [
       { label: '시가', value: fmtW(s.open), na: s.open == null },
-      { label: '고가', value: fmtW(s.high), na: s.high == null, cls: s.high != null ? cls(s.high - s.close) : '' },
-      { label: '저가', value: fmtW(s.low),  na: s.low  == null, cls: s.low  != null ? cls(s.low  - s.close) : '' },
+      { label: '고가', value: fmtW(s.high), na: s.high == null, cls: s.high != null ? cls(s.high - (s.close - (s.change ?? 0))) : '' },
+      { label: '저가', value: fmtW(s.low),  na: s.low  == null, cls: s.low  != null ? cls(s.low  - (s.close - (s.change ?? 0))) : '' },
     ];
     const tradeCards = [
       { label: '거래량',   value: fmtVol(s.volume), na: s.volume == null },
@@ -1945,8 +1945,8 @@
       return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
         <td>${s.date}</td>
         <td>${fmt(s.open)}</td>
-        <td class="${cls(s.high - s.close)}">${fmt(s.high)}</td>
-        <td class="${cls(s.low - s.close)}">${fmt(s.low)}</td>
+        <td class="${s.change != null ? cls(s.high - (s.close - s.change)) : ''}">${fmt(s.high)}</td>
+        <td class="${s.change != null ? cls(s.low  - (s.close - s.change)) : ''}">${fmt(s.low)}</td>
         <td><strong>${fmt(s.close)}</strong></td>
         <td class="${c}"><strong>${signFmt(s.change)}</strong></td>
         <td class="${c}"><strong>${s.change_pct != null ? (s.change_pct > 0 ? '+' : '') + s.change_pct + '%' : '—'}</strong></td>
