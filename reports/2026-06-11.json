@@ -20,7 +20,7 @@
           "low": 9110,
           "close": 9830,
           "volume": 277279,
-          "trading_value": null,
+          "trading_value": 2664525670,
           "change": 520,
           "change_pct": 5.59
         },
@@ -31,7 +31,7 @@
           "low": 9050,
           "close": 9310,
           "volume": 115697,
-          "trading_value": null,
+          "trading_value": 1082303960,
           "change": -20,
           "change_pct": -0.21
         },
@@ -42,7 +42,7 @@
           "low": 8930,
           "close": 9330,
           "volume": 204191,
-          "trading_value": null,
+          "trading_value": 1921284020,
           "change": 480,
           "change_pct": 5.42
         },
@@ -53,7 +53,7 @@
           "low": 8100,
           "close": 8850,
           "volume": 197058,
-          "trading_value": null,
+          "trading_value": 1701690590,
           "change": -170,
           "change_pct": -1.88
         },
@@ -64,7 +64,7 @@
           "low": 8950,
           "close": 9020,
           "volume": 122438,
-          "trading_value": null,
+          "trading_value": 1110193425,
           "change": -330,
           "change_pct": -3.53
         },
@@ -75,7 +75,7 @@
           "low": 9120,
           "close": 9350,
           "volume": 131264,
-          "trading_value": null,
+          "trading_value": 1221729780,
           "change": -210,
           "change_pct": -2.2
         },
@@ -86,7 +86,7 @@
           "low": 9210,
           "close": 9560,
           "volume": 114837,
-          "trading_value": null,
+          "trading_value": 1090177095,
           "change": null,
           "change_pct": null
         }
@@ -1082,10 +1082,10 @@
       "week52_low": 8100,
       "market_cap": 484261748310,
       "listed_shares": 49263657,
-      "per": null,
-      "pbr": null,
-      "eps": null,
-      "bps": null,
+      "per": 6.64,
+      "pbr": 2.24,
+      "eps": 1480,
+      "bps": 4391,
       "equity": 219627998000,
       "foreign_pct": 2.4,
       "exhaustion_rate": 2.4,
