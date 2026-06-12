@@ -208,6 +208,7 @@
       margin-bottom: 0;
     }
     .metrics-section { margin-bottom: 14px; }
+    .metrics-print-wrapper { display: none; }
     .metrics-section-title {
       font-size: 0.88rem;
       font-weight: 600;
@@ -880,6 +881,43 @@
       /* 테이블 가로 압축 */
       table  { white-space: normal; font-size: 0.75rem; }
       th, td { padding: 5px 8px; }
+
+      /* 종목 정보: 카드 숨기고 심플 테이블 표시 */
+      .metrics-section { display: none !important; }
+      .metrics-print-wrapper {
+        display: flex !important;
+        gap: 24px;
+        margin-bottom: 14px;
+      }
+      .metrics-print-table {
+        flex: 1;
+        border-collapse: collapse;
+        font-size: 0.78rem;
+      }
+      .metrics-print-table thead th {
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #9ca3af;
+        padding: 0 0 6px 0;
+        border-bottom: 1.5px solid #e5e7eb;
+      }
+      .metrics-print-table td {
+        padding: 4px 0;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .metrics-print-table td:first-child {
+        color: #6b7280;
+        padding-right: 16px;
+        white-space: nowrap;
+      }
+      .metrics-print-table td:last-child {
+        font-weight: 600;
+        color: #111827;
+        text-align: right;
+      }
 
       /* 그리드: 투자자 1열, 차트 2열 유지 */
       .investor-grid { grid-template-columns: 1fr 1fr !important; }
@@ -1726,6 +1764,20 @@
       </div>`;
     }
 
+    const infoRows = [
+      ['52주 최고가',   fmtW(s.week52_high) ?? '—'],
+      ['52주 최저가',   fmtW(s.week52_low)  ?? '—'],
+      ['상장 주식수',   s.listed_shares != null
+          ? Math.round(s.listed_shares / 10000).toLocaleString('ko-KR') + '만주' : '—'],
+      ['시가총액',      fmtCap(s.market_cap) ?? '—'],
+      ['시총 순위',     s.cap_rank != null ? s.cap_rank.toLocaleString('ko-KR') + '위' : '—'],
+      ['외국인 소진율', s.exhaustion_rate != null ? s.exhaustion_rate + '%' : '—'],
+    ].map(([l, v]) => `<tr><td>${l}</td><td>${v}</td></tr>`).join('');
+
+    const finRows = finCards
+      .map(c => `<tr><td>${c.label}</td><td>${c.value}</td></tr>`)
+      .join('');
+
     grid.innerHTML = `
       <div class="metrics-section">
         <div class="metrics-section-title">종목 현황</div>
@@ -1734,6 +1786,16 @@
       <div class="metrics-section">
         <div class="metrics-section-title">재무 지표</div>
         <div class="metrics-grid">${finCards.map(cardHtml).join('')}</div>
+      </div>
+      <div class="metrics-print-wrapper">
+        <table class="metrics-print-table">
+          <thead><tr><th colspan="2">종목 현황</th></tr></thead>
+          <tbody>${infoRows}</tbody>
+        </table>
+        <table class="metrics-print-table">
+          <thead><tr><th colspan="2">재무 지표</th></tr></thead>
+          <tbody>${finRows}</tbody>
+        </table>
       </div>`;
   }
 
