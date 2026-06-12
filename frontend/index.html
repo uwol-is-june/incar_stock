@@ -1193,7 +1193,7 @@
     <div class="print-section-header">시세 현황</div>
     <div id="price-grid"></div>
     <div class="card">
-      <div class="card-title">최근 7일 현황</div>
+      <div class="card-title">최근 7거래일 현황</div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -1663,34 +1663,7 @@
   function renderPriceMetrics(s) {
     const grid = document.getElementById('price-grid');
     if (!s) { grid.innerHTML = ''; return; }
-    const priceCards = [
-      { label: '시가', value: fmtW(s.open), na: s.open == null },
-      { label: '고가', value: fmtW(s.high), na: s.high == null, cls: s.high != null ? cls(s.high - (s.close - (s.change ?? 0))) : '' },
-      { label: '저가', value: fmtW(s.low),  na: s.low  == null, cls: s.low  != null ? cls(s.low  - (s.close - (s.change ?? 0))) : '' },
-    ];
-    const tradeCards = [
-      { label: '거래량',   value: fmtVol(s.volume), na: s.volume == null },
-      { label: '거래대금', value: fmtCap(s.trading_value) ?? '—',
-        note: s.trading_value == null ? '재수집 후 제공' : null, na: s.trading_value == null },
-      { label: s.prev_date ? `전일 종가 (${s.prev_date.slice(5).replace('-','/')})` : '전일 종가',
-        value: fmtW(s.prev_close), na: s.prev_close == null },
-    ];
-    function cardHtml(c, i) {
-      return `<div class="metric-card" style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
-        <div class="metric-label">${c.label}</div>
-        <div class="metric-value${c.na ? ' na' : ''}${c.cls ? ' ' + c.cls : ''}">${c.value}</div>
-        ${c.note ? `<div class="metric-note">${c.note}</div>` : ''}
-      </div>`;
-    }
-    grid.innerHTML = `
-      <div class="metrics-section">
-        <div class="metrics-section-title">가격</div>
-        <div class="metrics-grid">${priceCards.map(cardHtml).join('')}</div>
-      </div>
-      <div class="metrics-section">
-        <div class="metrics-section-title">거래</div>
-        <div class="metrics-grid">${tradeCards.map(cardHtml).join('')}</div>
-      </div>`;
+    grid.innerHTML = '';
   }
 
   /* ── 탭2: 종목 정보 KPI ── */
