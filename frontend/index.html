@@ -311,6 +311,10 @@
 
 
 
+    tr.report-row td:first-child {
+      border-left: 3px solid #6366f1;
+      padding-left: 13px;
+    }
     .empty-state {
       text-align: center;
       padding: 48px 20px;
@@ -1915,7 +1919,7 @@
     }
     tbody.innerHTML = rows.map((s, i) => {
       const c = cls(s.change_pct);
-      return `<tr style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
+      return `<tr class="${i === 0 ? 'report-row' : ''}" style="animation: fadeInUp 0.3s ease both; animation-delay: ${i * 60}ms">
         <td>${s.date}</td>
         <td>${fmt(s.open)}</td>
         <td class="${s.change != null ? cls(s.high - (s.close - s.change)) : ''}">${fmt(s.high)}</td>
