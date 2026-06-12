@@ -274,14 +274,14 @@
       white-space: nowrap;
     }
     th {
-      text-align: right;
+      text-align: center;
       padding: 9px 16px;
       background: var(--tbl-bg-head);
       border-bottom: 1px solid var(--tbl-border);
       font-weight: 600;
       color: var(--tbl-head-text);
     }
-    th:first-child { text-align: left; }
+    th:first-child { text-align: center; }
     td {
       text-align: right;
       padding: 11px 16px;
@@ -1935,12 +1935,12 @@
     if (!latestStock) { wrap.innerHTML = ''; return; }
 
     const _seen = new Set();
-    const recent10 = allReports.filter(r => {
+    const recent7 = allReports.filter(r => {
       const d = r.stocks?.[TICKER]?.data_date;
       if (!d || _seen.has(d)) return false;
       _seen.add(d); return true;
-    }).slice(0, 10);
-    const hasAnyData = recent10.some(r => {
+    }).slice(0, 7);
+    const hasAnyData = recent7.some(r => {
       const s = r.stocks?.[TICKER];
       return s && [s.inst_net, s.indiv_net, s.foreign_net].some(v => v != null);
     });
@@ -1985,7 +1985,7 @@
       }).join('');
     }
 
-    const trendRows = recent10.map((r, i) => {
+    const trendRows = recent7.map((r, i) => {
       const s = r.stocks?.[TICKER];
       if (!s) return '';
       const ohlcv = s.ohlcv_7d?.[0];
@@ -2006,7 +2006,7 @@
 
     wrap.innerHTML = `
       <div class="card">
-        <div class="card-title">최근 10거래일 순매수 동향 (주)</div>
+        <div class="card-title">최근 7거래일 순매수 동향 (주)</div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>기준일</th><th>종가</th><th>전일비</th><th>등락율</th><th>총 거래량</th><th>개인</th><th>기관</th><th>외국인</th></tr></thead>
@@ -2039,7 +2039,7 @@
       row.addEventListener('click', () => {
         wrap.querySelectorAll('.investor-row').forEach(r => r.classList.remove('investor-row-active'));
         row.classList.add('investor-row-active');
-        const s = recent10[parseInt(row.dataset.idx)]?.stocks?.[TICKER];
+        const s = recent7[parseInt(row.dataset.idx)]?.stocks?.[TICKER];
         if (!s) return;
         document.getElementById('inv-inst-tbody').innerHTML   = buildInstRows(s);
         document.getElementById('inv-detail-tbody').innerHTML = buildBuySellRows(s);
