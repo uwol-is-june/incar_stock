@@ -1,6 +1,6 @@
 {
   "date": "2026-07-06",
-  "generated_at": "2026-07-06T16:36:29+09:00",
+  "generated_at": "2026-07-06T20:47:19+09:00",
   "market_summary": "",
   "stocks": {
     "211050": {
@@ -1078,10 +1078,10 @@
       "week52_low": 8100,
       "market_cap": 512342032800,
       "listed_shares": 49263657,
-      "per": 6.59,
-      "pbr": 2.33,
-      "eps": 1579,
-      "bps": 4458,
+      "per": 7.03,
+      "pbr": 2.37,
+      "eps": 1480,
+      "bps": 4391,
       "equity": 219627998000,
       "foreign_pct": 2.11,
       "exhaustion_rate": 2.11,
