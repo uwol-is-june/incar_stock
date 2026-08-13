@@ -1,137 +1,97 @@
 {
-  "date": "2026-07-30",
-  "generated_at": "2026-07-30T18:39:14+09:00",
-  "market_summary": "금일 시장은 전반적으로 하락세를 보였으나, 인카금융서비스는 소폭 상승하며 시장 대비 선방하는 모습을 보였습니다. 이는 외국인 투자자의 순매수 유입에 따른 긍정적인 신호로 해석됩니다.",
+  "date": "2026-08-13",
+  "generated_at": "2026-08-13T16:12:50+09:00",
+  "market_summary": "금일 시장은 명확한 지수 정보가 없어 전반적인 동향 파악이 어렵습니다. 따라서 개별 종목의 움직임에 집중하여 분석을 진행합니다.",
   "stocks": {
     "211050": {
       "name": "인카금융서비스",
-      "close": 9490,
-      "prev_close": 9430,
-      "change": 60,
-      "change_pct": 0.64,
+      "close": 10730,
+      "prev_close": 10790,
+      "change": -60,
+      "change_pct": -0.56,
       "is_fallback": false,
-      "data_date": "2026-07-30",
-      "prev_date": "2026-07-29",
+      "data_date": "2026-08-13",
+      "prev_date": "2026-08-12",
       "ohlcv_7d": [
         {
-          "date": "2026-07-30",
-          "open": 9440,
-          "high": 9760,
-          "low": 9000,
-          "close": 9490,
-          "volume": 152437,
-          "trading_value": 1448866455,
-          "change": 60,
-          "change_pct": 0.64
+          "date": "2026-08-13",
+          "open": 10580,
+          "high": 10770,
+          "low": 10420,
+          "close": 10730,
+          "volume": 70337,
+          "trading_value": null,
+          "change": -60,
+          "change_pct": -0.56
         },
         {
-          "date": "2026-07-29",
-          "open": 9650,
-          "high": 9650,
-          "low": 9010,
-          "close": 9430,
-          "volume": 192846,
-          "trading_value": 1789621885,
-          "change": -30,
-          "change_pct": -0.32
+          "date": "2026-08-12",
+          "open": 10850,
+          "high": 10900,
+          "low": 10550,
+          "close": 10790,
+          "volume": 94874,
+          "trading_value": null,
+          "change": -190,
+          "change_pct": -1.73
         },
         {
-          "date": "2026-07-28",
-          "open": 9630,
-          "high": 9900,
-          "low": 9310,
-          "close": 9460,
-          "volume": 125551,
-          "trading_value": 1190838090,
-          "change": -440,
-          "change_pct": -4.44
+          "date": "2026-08-11",
+          "open": 10600,
+          "high": 11020,
+          "low": 10520,
+          "close": 10980,
+          "volume": 129711,
+          "trading_value": null,
+          "change": 250,
+          "change_pct": 2.33
         },
         {
-          "date": "2026-07-27",
-          "open": 9800,
-          "high": 10010,
-          "low": 9600,
-          "close": 9900,
-          "volume": 101927,
-          "trading_value": 999721895,
-          "change": 270,
-          "change_pct": 2.8
+          "date": "2026-08-10",
+          "open": 10360,
+          "high": 10800,
+          "low": 10360,
+          "close": 10730,
+          "volume": 105914,
+          "trading_value": null,
+          "change": 200,
+          "change_pct": 1.9
         },
         {
-          "date": "2026-07-24",
-          "open": 9540,
-          "high": 9810,
-          "low": 9540,
-          "close": 9630,
-          "volume": 99693,
-          "trading_value": 964969570,
-          "change": -220,
-          "change_pct": -2.23
+          "date": "2026-08-07",
+          "open": 10560,
+          "high": 10690,
+          "low": 10160,
+          "close": 10530,
+          "volume": 129025,
+          "trading_value": null,
+          "change": -130,
+          "change_pct": -1.22
         },
         {
-          "date": "2026-07-23",
-          "open": 9830,
-          "high": 9930,
-          "low": 9490,
-          "close": 9850,
-          "volume": 80984,
-          "trading_value": 790949205,
+          "date": "2026-08-06",
+          "open": 10150,
+          "high": 10700,
+          "low": 10150,
+          "close": 10660,
+          "volume": 117833,
+          "trading_value": null,
           "change": 300,
-          "change_pct": 3.14
+          "change_pct": 2.9
         },
         {
-          "date": "2026-07-22",
-          "open": 9760,
-          "high": 9970,
-          "low": 9550,
-          "close": 9550,
-          "volume": 66294,
-          "trading_value": 640959190,
+          "date": "2026-08-05",
+          "open": 10220,
+          "high": 10480,
+          "low": 10080,
+          "close": 10360,
+          "volume": 124307,
+          "trading_value": null,
           "change": null,
           "change_pct": null
         }
       ],
       "ohlcv_1y": [
-        {
-          "date": "2025-07-30",
-          "close": 11350
-        },
-        {
-          "date": "2025-07-31",
-          "close": 11380
-        },
-        {
-          "date": "2025-08-01",
-          "close": 11120
-        },
-        {
-          "date": "2025-08-04",
-          "close": 11800
-        },
-        {
-          "date": "2025-08-05",
-          "close": 12050
-        },
-        {
-          "date": "2025-08-06",
-          "close": 11790
-        },
-        {
-          "date": "2025-08-07",
-          "close": 12410
-        },
-        {
-          "date": "2025-08-08",
-          "close": 12270
-        },
-        {
-          "date": "2025-08-11",
-          "close": 12350
-        },
-        {
-          "date": "2025-08-12",
-          "close": 12380
-        },
         {
           "date": "2025-08-13",
           "close": 11930
@@ -1067,233 +1027,95 @@
         {
           "date": "2026-07-30",
           "close": 9490
+        },
+        {
+          "date": "2026-07-31",
+          "close": 9990
+        },
+        {
+          "date": "2026-08-03",
+          "close": 9780
+        },
+        {
+          "date": "2026-08-04",
+          "close": 10350
+        },
+        {
+          "date": "2026-08-05",
+          "close": 10360
+        },
+        {
+          "date": "2026-08-06",
+          "close": 10660
+        },
+        {
+          "date": "2026-08-07",
+          "close": 10530
+        },
+        {
+          "date": "2026-08-10",
+          "close": 10730
+        },
+        {
+          "date": "2026-08-11",
+          "close": 10980
+        },
+        {
+          "date": "2026-08-12",
+          "close": 10790
+        },
+        {
+          "date": "2026-08-13",
+          "close": 10730
         }
       ],
-      "open": 9440,
-      "high": 9760,
-      "low": 9000,
-      "volume": 152437,
-      "trading_value": 1448866455,
+      "open": 10580,
+      "high": 10770,
+      "low": 10420,
+      "volume": 70337,
+      "trading_value": null,
       "week52_high": 17330,
       "week52_low": 8100,
-      "market_cap": 467512104930,
-      "listed_shares": 49263657,
-      "per": 6.41,
-      "pbr": 2.16,
-      "eps": 1480,
-      "bps": 4391,
+      "market_cap": null,
+      "listed_shares": null,
+      "per": null,
+      "pbr": null,
+      "eps": null,
+      "bps": null,
       "equity": 219627998000,
-      "foreign_pct": 1.74,
-      "exhaustion_rate": 1.74,
-      "cap_rank": 140,
+      "foreign_pct": null,
+      "exhaustion_rate": null,
+      "cap_rank": null,
       "kospi": {
-        "close": 5593.56,
-        "prev_close": 5663.24,
-        "change": -69.68,
-        "change_pct": -1.23
+        "close": null,
+        "prev_close": null,
+        "change": null,
+        "change_pct": null
       },
       "kosdaq": {
-        "close": 644.78,
-        "prev_close": 662.68,
-        "change": -17.9,
-        "change_pct": -2.7
+        "close": null,
+        "prev_close": null,
+        "change": null,
+        "change_pct": null
       },
-      "kospi_history": [
-        {
-          "date": "2026-06-30",
-          "close": 8476.48
-        },
-        {
-          "date": "2026-07-01",
-          "close": 8303.41
-        },
-        {
-          "date": "2026-07-02",
-          "close": 7648.09
-        },
-        {
-          "date": "2026-07-03",
-          "close": 8088.34
-        },
-        {
-          "date": "2026-07-06",
-          "close": 8051.33
-        },
-        {
-          "date": "2026-07-07",
-          "close": 7656.31
-        },
-        {
-          "date": "2026-07-08",
-          "close": 7246.79
-        },
-        {
-          "date": "2026-07-09",
-          "close": 7291.91
-        },
-        {
-          "date": "2026-07-10",
-          "close": 7475.94
-        },
-        {
-          "date": "2026-07-13",
-          "close": 6806.93
-        },
-        {
-          "date": "2026-07-14",
-          "close": 6856.83
-        },
-        {
-          "date": "2026-07-15",
-          "close": 7284.41
-        },
-        {
-          "date": "2026-07-16",
-          "close": 6820.6
-        },
-        {
-          "date": "2026-07-20",
-          "close": 6516.27
-        },
-        {
-          "date": "2026-07-21",
-          "close": 6747.95
-        },
-        {
-          "date": "2026-07-22",
-          "close": 6797.7
-        },
-        {
-          "date": "2026-07-23",
-          "close": 7096.89
-        },
-        {
-          "date": "2026-07-24",
-          "close": 6690.62
-        },
-        {
-          "date": "2026-07-27",
-          "close": 6755.75
-        },
-        {
-          "date": "2026-07-28",
-          "close": 6023.66
-        },
-        {
-          "date": "2026-07-29",
-          "close": 5663.24
-        },
-        {
-          "date": "2026-07-30",
-          "close": 5593.56
-        }
-      ],
-      "kosdaq_history": [
-        {
-          "date": "2026-06-30",
-          "close": 916.18
-        },
-        {
-          "date": "2026-07-01",
-          "close": 929.35
-        },
-        {
-          "date": "2026-07-02",
-          "close": 866.72
-        },
-        {
-          "date": "2026-07-03",
-          "close": 868.41
-        },
-        {
-          "date": "2026-07-06",
-          "close": 847.07
-        },
-        {
-          "date": "2026-07-07",
-          "close": 831.23
-        },
-        {
-          "date": "2026-07-08",
-          "close": 785.0
-        },
-        {
-          "date": "2026-07-09",
-          "close": 794.0
-        },
-        {
-          "date": "2026-07-10",
-          "close": 837.43
-        },
-        {
-          "date": "2026-07-13",
-          "close": 799.36
-        },
-        {
-          "date": "2026-07-14",
-          "close": 783.98
-        },
-        {
-          "date": "2026-07-15",
-          "close": 829.43
-        },
-        {
-          "date": "2026-07-16",
-          "close": 791.84
-        },
-        {
-          "date": "2026-07-20",
-          "close": 749.64
-        },
-        {
-          "date": "2026-07-21",
-          "close": 753.34
-        },
-        {
-          "date": "2026-07-22",
-          "close": 751.09
-        },
-        {
-          "date": "2026-07-23",
-          "close": 790.28
-        },
-        {
-          "date": "2026-07-24",
-          "close": 748.22
-        },
-        {
-          "date": "2026-07-27",
-          "close": 764.86
-        },
-        {
-          "date": "2026-07-28",
-          "close": 705.85
-        },
-        {
-          "date": "2026-07-29",
-          "close": 662.68
-        },
-        {
-          "date": "2026-07-30",
-          "close": 644.78
-        }
-      ],
-      "inst_buy": 51102,
-      "inst_sell": 59330,
-      "inst_net": -8228,
-      "indiv_buy": 25363,
-      "indiv_sell": 35656,
-      "indiv_net": -10293,
-      "foreign_buy": 75522,
-      "foreign_sell": 37585,
-      "foreign_net": 37937,
-      "finv_net": 13331,
-      "ins_net": -9,
-      "trust_net": -4550,
-      "private_net": -17000,
-      "bank_net": 0,
-      "etc_fin_net": 0,
-      "pension_net": 0,
+      "kospi_history": [],
+      "kosdaq_history": [],
+      "inst_buy": null,
+      "inst_sell": null,
+      "inst_net": null,
+      "indiv_buy": null,
+      "indiv_sell": null,
+      "indiv_net": null,
+      "foreign_buy": null,
+      "foreign_sell": null,
+      "foreign_net": null,
+      "finv_net": null,
+      "ins_net": null,
+      "trust_net": null,
+      "private_net": null,
+      "bank_net": null,
+      "etc_fin_net": null,
+      "pension_net": null,
       "dart_financials": [
         {
           "period": "2026/Q1",
@@ -1401,7 +1223,7 @@
           }
         ]
       },
-      "comment": "### 가격 / 등락: 금일 인카금융서비스는 9,490원으로 전일 대비 60원(+0.64%) 상승 마감하며 시장 하락세 속에서도 긍정적인 흐름을 유지했습니다.\n### 투자자 동향: 외국인 투자자는 37,937주를 순매수하며 시장 하락 속에서도 인카금융서비스에 대한 관심을 보였습니다. 반면 개인 투자자는 10,293주를 순매도하며 차익 실현 또는 시장 하락에 대한 우려를 나타냈습니다. 기관 합계는 8,228주 순매도하며 관망세를 보였으며, 연기금은 순매수·순매도 없이 보합세를 유지했습니다.\n### 거래량 · 거래대금: 거래량은 152,437주, 거래대금은 1.4억원으로, 전반적인 시장 거래량 감소 추세와 유사하게 거래 활성도는 높지 않았으나, 외국인 순매수세가 유입되며 의미 있는 자금 흐름이 나타났습니다.\n### 시장 대비 상대 강도: KOSPI(-1.23%) 및 KOSDAQ(-2.70%) 지수가 큰 폭으로 하락한 가운데, 인카금융서비스의 소폭 상승은 시장 대비 상대적인 강세를 시사합니다.\n### 종합 의견: 시장 하락 속 외국인 순매수 유입은 긍정적 신호이며, 향후 외국인 매수세 지속 여부가 주가 흐름의 중요한 변곡점이 될 것입니다."
+      "comment": "### 가격 / 등락:\n인카금융서비스는 금일 10,730원에 마감하며 전일 대비 60원(-0.56%) 하락했습니다. 소폭의 등락은 현재 시장 상황이나 개별적인 이슈보다는 전반적인 시장 분위기에 영향을 받은 것으로 추정됩니다.\n\n### 투자자 동향:\n현재 제공된 정보로는 개인, 외국인, 기관, 연기금의 순매수 현황을 파악할 수 없어 투자 주체의 매매 동향을 분석하기 어렵습니다. 이는 투자 결정에 있어 중요한 시사점을 제공하지 못하는 한계가 있습니다.\n\n### 거래량 · 거래대금:\n거래량은 70,337주로 집계되었으나, 거래대금 정보는 제공되지 않아 자금 유입/유출 규모를 파악하기 어렵습니다. 거래량이 높지 않은 상황임을 감안할 때, 현재 시장에서의 유의미한 자금 흐름은 관찰되지 않는 것으로 판단됩니다.\n\n### 시장 대비 상대 강도:\nKOSPI 및 KOSDAQ 지수 정보가 부재하여 시장 대비 종목의 상대 강도를 평가할 수 없습니다. 시장 평균 대비 움직임을 파악하기 위해서는 추가적인 시장 지수 정보가 필요합니다.\n\n### 종합 의견:\n소폭의 가격 하락과 거래량 둔화를 보였으며, 투자 주체 및 시장 대비 상대 강도를 파악할 수 없어 현재로서는 유의미한 투자 신호가 감지되지 않습니다."
     }
   }
 }
