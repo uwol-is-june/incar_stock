@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_(없음)_
+### Fixed
+- [TASK-040] 지연·중복 실행이 확정된 과거 보고서를 덮어쓰는 문제 수정 — `data_date`가 과거 거래일이면 `reports/{data_date}.json`을 fallback 데이터로 덮어써 지수·투자자·시가총액이 사라졌다(2026-11-13·2026-11-16 파일 유실). `backend/report_guard.py` 멱등성 판단 + `reporter.save_guarded()`로 기존 확정 보고서는 보존하고, 미완성 보고서만 더 완전한 데이터로 보완. 수동 재수집용 `--force` 추가, `daily-collect.yml`에 `concurrency` 그룹 추가.
 
 ---
 
