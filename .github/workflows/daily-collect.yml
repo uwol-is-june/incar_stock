@@ -2,12 +2,16 @@ name: Daily Stock Collect
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '10 7 * * 1-5'   # UTC 07:10 = KST 16:10, 평일
+  # schedule: 은 ADR-003에 따라 제거됨 (GitHub schedule 피크 시간대 2~3시간 지연 → cron-job.org 정시 트리거 + workflow_dispatch 사용)
+  # 남아 있던 schedule 트리거가 다음 날 01:58 KST 같은 지연 실행을 만들어 과거 보고서를 덮어썼음.
 
 jobs:
   collect:
     runs-on: ubuntu-latest
+    # 지연 실행·중복 트리거가 겹치면 앞 실행이 끝난 뒤에 돈다 (보고서 동시 쓰기 방지)
+    concurrency:
+      group: daily-collect-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: write
 
